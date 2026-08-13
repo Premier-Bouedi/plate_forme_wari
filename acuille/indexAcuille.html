@@ -634,24 +634,24 @@
       <button class="modal-close" onclick="closeLoanModal()" aria-label="Fermer">✕</button>
     </div>
     <h3>Simulateur de prêt</h3>
-    <p class="modal-sub">Taux fixe de <strong>50 % pour 30 jours</strong>. Montant minimum : <strong>100 MAD</strong>. Durée minimum : <strong>1 mois</strong>.</p>
+    <p class="modal-sub">Taux fixe de <strong>50 % pour 30 jours</strong>. Montant minimum : <strong>100 MAD</strong>. Durée fixe : <strong>1 mois</strong>.</p>
 
     <div class="field">
       <label>Montant emprunté <span class="field-value" id="amountVal">100 MAD</span></label>
       <div class="amount-input-row">
-        <input type="number" id="amountInput" min="100" max="500000" step="100" value="100"
-          placeholder="Ex : 5000" oninput="syncAmountFromInput()">
+        <input type="number" id="amountInput" min="100" max="500000" step="1" value="100"
+          placeholder="Ex : 150" oninput="syncAmountFromInput()" onblur="finalizeAmountInput()">
         <span>MAD</span>
       </div>
-      <input type="range" id="amount" min="100" max="500000" step="100" value="100" oninput="syncAmountFromSlider()">
+      <input type="range" id="amount" min="100" max="500000" step="1" value="100" oninput="syncAmountFromSlider()">
     </div>
     <div class="field field-fixed-rate">
       <label>Taux d'intérêt</label>
       <span class="field-value field-value-fixed">50 % / 30 jours</span>
     </div>
-    <div class="field">
-      <label>Durée <span class="field-value" id="durationVal">1 mois</span></label>
-      <input type="range" id="duration" min="1" max="24" step="1" value="1" oninput="calcLoan()">
+    <div class="field field-fixed-rate">
+      <label>Durée</label>
+      <span class="field-value field-value-fixed">1 mois</span>
     </div>
 
     <div class="result-panel">
@@ -672,7 +672,7 @@
       <textarea id="clientMessage" class="client-field" placeholder="Précisez votre besoin ou posez votre question…"></textarea>
     </div>
 
-    <p class="modal-note">Simulation indicative : 50 % d'intérêt par période de 30 jours. Montant minimum 100 MAD, durée minimum 1 mois.</p>
+    <p class="modal-note">Simulation indicative : 50 % d'intérêt par période de 30 jours. Montant minimum 100 MAD, durée fixée à 1 mois.</p>
     <button class="modal-cta" onclick="requestLoanQuote()">
       Envoyer mon devis sur WhatsApp
     </button>
@@ -682,12 +682,12 @@
 <script>
   const amountEl = document.getElementById('amount');
   const amountInputEl = document.getElementById('amountInput');
-  const durationEl = document.getElementById('duration');
   const LOAN_WHATSAPP = '212772457478';
   const LOAN_STORAGE_KEY = 'waveTransfertLoanDevis';
   const LOAN_RATE = 0.50;
   const LOAN_MIN = 100;
   const LOAN_MAX = 500000;
+  const LOAN_DURATION = 1;
 
   function clampAmount(value) {
     return Math.min(LOAN_MAX, Math.max(LOAN_MIN, value));
@@ -697,26 +697,56 @@
     return Math.round(n).toLocaleString('fr-FR') + ' MAD';
   }
 
+  function readAmountInput() {
+    const raw = parseFloat(amountInputEl.value);
+    if (Number.isNaN(raw)) return LOAN_MIN;
+    return Math.min(LOAN_MAX, Math.max(0, raw));
+  }
+
   function syncAmountFromSlider() {
     amountInputEl.value = amountEl.value;
     calcLoan();
   }
 
   function syncAmountFromInput() {
+    const val = readAmountInput();
+    amountEl.value = clampAmount(val || LOAN_MIN);
+    const calcAmount = val >= LOAN_MIN ? clampAmount(val) : LOAN_MIN;
+    document.getElementById('amountVal').textContent =
+      val > 0 && val < LOAN_MIN ? val + ' MAD' : formatMAD(calcAmount);
+    updateLoanResults(calcAmount);
+  }
+
+  function finalizeAmountInput() {
     const val = clampAmount(parseFloat(amountInputEl.value) || LOAN_MIN);
     amountInputEl.value = val;
     amountEl.value = val;
     calcLoan();
   }
 
-  function getLoanData() {
-    const P = clampAmount(parseFloat(amountEl.value) || LOAN_MIN);
-    const n = parseInt(durationEl.value, 10);
+  function getLoanData(amountOverride) {
+    const P = clampAmount(amountOverride ?? readAmountInput());
+    const n = LOAN_DURATION;
     const interest = P * LOAN_RATE * n;
     const total = P + interest;
     const monthly = total / n;
 
     return { P, n, interest, total, monthly };
+  }
+
+  function updateLoanResults(amountOverride) {
+    const { P, n, interest, total, monthly } = getLoanData(amountOverride);
+
+    document.getElementById('amountVal').textContent = formatMAD(P);
+    document.getElementById('monthlyOut').textContent = formatMAD(monthly);
+    document.getElementById('interestOut').textContent = formatMAD(interest);
+    document.getElementById('totalOut').textContent = formatMAD(total);
+  }
+
+  function calcLoan() {
+    const val = clampAmount(readAmountInput());
+    amountEl.value = val;
+    updateLoanResults(val);
   }
 
   function saveLoanDevis(data) {
@@ -741,26 +771,14 @@
         amountEl.value = last.amount;
         amountInputEl.value = last.amount;
       }
-      if (last.duration) durationEl.value = last.duration;
     } catch (err) {
       console.warn('Chargement devis impossible', err);
     }
   }
 
-  function calcLoan() {
-    const { P, n, interest, total, monthly } = getLoanData();
-
-    amountEl.value = P;
-    amountInputEl.value = P;
-
-    document.getElementById('amountVal').textContent = formatMAD(P);
-    document.getElementById('durationVal').textContent = n + ' mois';
-    document.getElementById('monthlyOut').textContent = formatMAD(monthly);
-    document.getElementById('interestOut').textContent = formatMAD(interest);
-    document.getElementById('totalOut').textContent = formatMAD(total);
-  }
-
   function requestLoanQuote() {
+    finalizeAmountInput();
+
     const clientName = document.getElementById('clientName').value.trim();
     const clientMessage = document.getElementById('clientMessage').value.trim();
 

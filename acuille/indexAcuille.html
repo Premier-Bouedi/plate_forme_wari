@@ -657,7 +657,6 @@
     <div class="result-panel">
       <div class="result-row" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; margin-bottom: 6px;">
         <span class="rlabel" style="font-weight:700; color:#fde047;">Votre devis</span>
-        <span class="rval" id="devisDate"></span>
       </div>
       <div class="result-row"><span class="rlabel">Mensualité</span><span class="rval" id="monthlyOut">— MAD</span></div>
       <div class="result-row"><span class="rlabel">Total des intérêts</span><span class="rval" id="interestOut">— MAD</span></div>
@@ -756,7 +755,6 @@
 
     document.getElementById('amountVal').textContent = formatMAD(P);
     document.getElementById('durationVal').textContent = n + ' mois';
-    document.getElementById('devisDate').textContent = new Date().toLocaleDateString('fr-FR');
     document.getElementById('monthlyOut').textContent = formatMAD(monthly);
     document.getElementById('interestOut').textContent = formatMAD(interest);
     document.getElementById('totalOut').textContent = formatMAD(total);
@@ -773,7 +771,6 @@
     }
 
     const { P, n, interest, total, monthly } = getLoanData();
-    const dateStr = new Date().toLocaleString('fr-FR');
 
     const devisData = {
       clientName,
@@ -784,7 +781,6 @@
       monthly,
       interest,
       total,
-      date: dateStr,
       whatsapp: LOAN_WHATSAPP
     };
 
@@ -800,7 +796,6 @@
     msg += `*Total intérêts:* ${formatMAD(interest)}%0A`;
     msg += `*Total à rembourser:* ${formatMAD(total)}%0A`;
     msg += `--------------------------------%0A`;
-    msg += `Date: ${dateStr}%0A`;
     msg += `Merci de confirmer ce devis.`;
 
     window.open(`https://wa.me/${LOAN_WHATSAPP}?text=${msg}`, '_blank');

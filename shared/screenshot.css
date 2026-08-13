@@ -1,0 +1,176 @@
+.screenshot-block {
+    margin-bottom: 1rem;
+}
+
+.screenshot-block-main {
+    margin-bottom: 16px;
+}
+
+.screenshot-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #212529;
+}
+
+.btn-screenshot-unified {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    background: #ffffff;
+    color: #495057;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.btn-screenshot-unified:hover {
+    background: #f8f9fa;
+    border-color: rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+.screenshot-camera-icon {
+    flex-shrink: 0;
+    color: #6c757d;
+}
+
+.screenshot-preview {
+    display: none;
+    max-width: 100%;
+    max-height: 180px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    object-fit: contain;
+    background: #fff;
+}
+
+.screenshot-filename {
+    display: none;
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.screenshot-hint {
+    font-size: 0.75rem;
+    color: #6c757d;
+    line-height: 1.45;
+    margin-bottom: 0;
+}
+
+.screenshot-choice-menu {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2000;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+}
+
+.screenshot-choice-menu.open {
+    display: flex;
+}
+
+.screenshot-choice-panel {
+    width: 100%;
+    max-width: 360px;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    padding: 16px;
+}
+
+.screenshot-choice-panel h6 {
+    margin: 0 0 12px;
+    font-size: 0.9rem;
+    color: #212529;
+}
+
+.screenshot-choice-panel button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    background: #f8f9fa;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.screenshot-choice-panel .btn-cancel-screenshot {
+    background: transparent;
+    color: #6c757d;
+}
+
+.btn-whatsapp-send {
+    background: #25D366 !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 12px !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: filter 0.2s ease, transform 0.15s ease;
+}
+
+.btn-whatsapp-send:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    color: #ffffff !important;
+}
+
+.whatsapp-contact-line {
+    text-align: center;
+    font-size: 0.78rem;
+    color: #6c757d;
+    margin-bottom: 14px;
+}
+
+.whatsapp-contact-line strong {
+    color: #25D366;
+    font-family: 'Space Mono', 'JetBrains Mono', monospace;
+}
+
+.contacts-center .contact-item {
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.6);
+    padding: 12px 10px;
+}
+
+.contacts-center .contact-num {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+.contacts-center .contact-name {
+    font-size: 0.78rem;
+    opacity: 0.85;
+    margin-bottom: 8px;
+}
+
+.contacts-center .btn-copy {
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}

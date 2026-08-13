@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wave Transfert · Plateforme</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ----- reset & variables ----- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep: #0b1120;
+      --bg-gradient: radial-gradient(circle at 50% 0%, #16213a 0%, #0b1120 55%, #070b16 100%);
+      --text-main: #f4f6fb;
+      --text-muted: #8a93a8;
+      --text-faint: #5c6478;
+
+      --font-display: 'Space Grotesk', system-ui, sans-serif;
+      --font-body: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 40px 20px;
+      color: var(--text-main);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(circle at 50% 25%, black 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header, .cards-container, footer { position: relative; z-index: 1; }
+
+    /* ----- header ----- */
+    header { text-align: center; margin-top: 12px; }
+
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 18px;
+      background: rgba(56, 189, 248, 0.08);
+      color: #7dd3fc;
+      border-radius: 50px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+      border: 1px solid rgba(125, 211, 252, 0.18);
+    }
+    .badge-top::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 8px #4ade80;
+    }
+
+    header h1 {
+      font-family: var(--font-display);
+      font-size: 3.4rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      background: linear-gradient(180deg, #ffffff 20%, #a6b2c9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 1.08rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ----- cartes ----- */
+    .cards-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      max-width: 1240px;
+      width: 100%;
+      margin: 44px 0;
+    }
+
+    .service-card {
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 32px 24px;
+      text-align: left;
+      text-decoration: none;
+      color: var(--text-main);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.3s ease,
+                  background 0.3s ease,
+                  box-shadow 0.35s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    }
+
+    .service-card::after {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -40%;
+      width: 70%;
+      height: 70%;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--glow, transparent) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    /* --- COULEURS DEMANDÉES POUR LES DIVS COMPLETS --- */
+    
+    /* 1. Div Airtel (Rouge complet) */
+    .card-airtel {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      --glow: rgba(239, 68, 68, 0.4);
+    }
+    .card-airtel:hover {
+      border-color: rgba(239, 68, 68, 0.6);
+      box-shadow: 0 24px 48px -20px rgba(239, 68, 68, 0.45);
+      background: rgba(239, 68, 68, 0.18);
+    }
+
+    /* 2. Div Orange / Rangement (Orange complet) */
+    .card-orange {
+      background: rgba(249, 115, 22, 0.12);
+      border: 1px solid rgba(249, 115, 22, 0.35);
+      --glow: rgba(249, 115, 22, 0.4);
+    }
+    .card-orange:hover {
+      border-color: rgba(249, 115, 22, 0.6);
+      box-shadow: 0 24px 48px -20px rgba(249, 115, 22, 0.45);
+      background: rgba(249, 115, 22, 0.18);
+    }
+
+    /* 3. Div Wave / Web (Bleu complet) */
+    .card-wave {
+      background: rgba(34, 211, 238, 0.12);
+      border: 1px solid rgba(34, 211, 238, 0.35);
+      --glow: rgba(34, 211, 238, 0.4);
+    }
+    .card-wave:hover {
+      border-color: rgba(34, 211, 238, 0.6);
+      box-shadow: 0 24px 48px -20px rgba(34, 211, 238, 0.45);
+      background: rgba(34, 211, 238, 0.18);
+    }
+
+    /* 4. Div Prêt (Conserve sa couleur originale jaune/or d'origine) */
+    .card-loan {
+      background: rgba(234, 179, 8, 0.08);
+      border: 1px solid rgba(234, 179, 8, 0.25);
+      --glow: rgba(234, 179, 8, 0.35);
+    }
+    .card-loan:hover {
+      border-color: rgba(234, 179, 8, 0.45);
+      box-shadow: 0 24px 48px -20px rgba(234, 179, 8, 0.35);
+      background: rgba(234, 179, 8, 0.14);
+    }
+
+    .service-card:hover { transform: translateY(-6px); }
+    .service-card:hover::after { opacity: 1; }
+
+    .icon-container {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .service-card:hover .icon-container {
+      transform: scale(1.05);
+    }
+
+    .icon-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Fonds intérieurs des icônes */
+    .card-airtel .icon-container {
+      background: linear-gradient(145deg, #e60000 0%, #c40000 55%, #990000 100%);
+      box-shadow: 0 10px 28px rgba(230, 0, 0, 0.45);
+    }
+    .card-airtel .icon-container img { object-fit: contain; padding: 8px; }
+
+    .card-orange .icon-container {
+      background: linear-gradient(145deg, #ff7900 0%, #f26500 55%, #d95600 100%);
+      box-shadow: 0 10px 28px rgba(255, 121, 0, 0.45);
+    }
+    .card-orange .icon-container img { object-fit: cover; border-radius: 14px; }
+
+    .card-wave .icon-container {
+      background: linear-gradient(145deg, #1dc5f8 0%, #0ea5e9 55%, #0284c7 100%);
+      box-shadow: 0 10px 28px rgba(29, 197, 248, 0.4);
+    }
+    .card-wave .icon-container img { object-fit: cover; }
+
+    .card-loan .icon-container {
+      background: linear-gradient(145deg, #eab308, #a16207);
+      box-shadow: 0 10px 28px rgba(234, 179, 8, 0.35);
+    }
+    .card-loan .icon-container svg { filter: brightness(0) invert(1); }
+
+    .service-card h2 {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .service-card p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: 24px;
+      flex-grow: 1;
+    }
+
+    .card-action {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: gap 0.2s ease;
+    }
+    .card-airtel .card-action { color: #fca5a5; }
+    .card-orange .card-action { color: #fdba74; }
+    .card-wave .card-action   { color: #67e8f9; }
+    .card-loan .card-action   { color: #fde047; }
+    .service-card:hover .card-action { gap: 10px; }
+
+    /* ----- footer ----- */
+    footer {
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-faint);
+    }
+    footer a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    footer a:hover { color: #38bdf8; }
+    footer a::after { content: '↗'; font-size: 0.85em; opacity: 0.75; }
+
+    /* ----- responsive ----- */
+    @media (max-width: 980px) {
+      .cards-container { grid-template-columns: repeat(2, 1fr); max-width: 640px; }
+    }
+    @media (max-width: 560px) {
+      .cards-container { grid-template-columns: 1fr; max-width: 400px; }
+      header h1 { font-size: 2.2rem; }
+    }
+
+    /* ----- modal (prêt) ----- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 9, 18, 0.75);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+      padding: 20px;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .modal-window {
+      width: 100%;
+      max-width: 460px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: linear-gradient(180deg, #131b2e 0%, #0e1526 100%);
+      border: 1px solid rgba(234, 179, 8, 0.22);
+      border-radius: 22px;
+      padding: 30px;
+      transform: translateY(18px) scale(0.98);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 30px 80px -20px rgba(0,0,0,0.6);
+    }
+    .modal-overlay.open .modal-window { transform: translateY(0) scale(1); }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .modal-head .icon-container {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 0;
+      background: linear-gradient(135deg, #eab308, #a16207);
+      border-radius: 12px;
+    }
+    .modal-head .icon-container svg { filter: brightness(0) invert(1); }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.06); color: var(--text-main); }
+
+    .modal-window h3 {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin: 8px 0 4px;
+      letter-spacing: -0.01em;
+    }
+    .modal-window .modal-sub {
+      color: var(--text-muted);
+      font-size: 0.87rem;
+      margin-bottom: 26px;
+      line-height: 1.5;
+    }
+
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .field label .field-value {
+      font-family: var(--font-mono);
+      color: #fde047;
+      font-weight: 600;
+    }
+
+    .field-fixed-rate {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(234, 179, 8, 0.08);
+      border: 1px solid rgba(234, 179, 8, 0.2);
+    }
+    .field-fixed-rate label {
+      margin-bottom: 0;
+    }
+    .field-value-fixed {
+      font-family: var(--font-mono);
+      color: #fde047;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .amount-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .amount-input-row input[type="number"] {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .amount-input-row input[type="number"]:focus {
+      border-color: rgba(234, 179, 8, 0.5);
+      box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.15);
+    }
+
+    .amount-input-row span {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .client-field {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      outline: none;
+      resize: vertical;
+    }
+
+    .client-field:focus {
+      border-color: rgba(234, 179, 8, 0.5);
+      box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.15);
+    }
+
+    textarea.client-field {
+      min-height: 72px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #eab308, #a16207);
+      cursor: pointer;
+      border: 2px solid #0e1526;
+      box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.4);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #eab308, #a16207);
+      cursor: pointer;
+      border: 2px solid #0e1526;
+    }
+
+    .result-panel {
+      margin-top: 24px;
+      background: rgba(234, 179, 8, 0.06);
+      border: 1px solid rgba(234, 179, 8, 0.16);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.07);
+      font-size: 0.86rem;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-row .rlabel { color: var(--text-muted); }
+    .result-row .rval { font-family: var(--font-mono); font-weight: 600; }
+    .result-row.total .rval { color: #fde047; font-size: 1.05rem; }
+
+    .modal-note {
+      margin-top: 18px;
+      font-size: 0.74rem;
+      color: var(--text-faint);
+      line-height: 1.5;
+    }
+    .modal-cta {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #eab308, #a16207);
+      color: #1c1200;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: filter 0.2s ease, transform 0.2s ease;
+    }
+    .modal-cta:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+    .service-card button {
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      padding: 0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge-top">service</div>
+  <h1>Wave Transfert</h1>
+  <p>Sélectionnez le service de transfert ou de crédit qui vous convient</p>
+</header>
+
+<div class="cards-container">
+
+  <!-- Airtel Money (Div complet : Rouge) -->
+  <a href="../warii-main/index.html" class="service-card card-airtel">
+    <div class="icon-container">
+      <img src="images/airtel.png" alt="Logo Airtel Money">
+    </div>
+    <h2>Airtel Money</h2>
+    <p>Transferts sécurisés et rapides Gabon ⇄ Maroc.</p>
+    <div class="card-action">Accéder au service &rarr;</div>
+  </a>
+
+  <!-- Orange Money / Rangement (Div complet : Orange) -->
+  <a href="../wari Orange/index.html" class="service-card card-orange">
+    <div class="icon-container">
+      <img src="images/orange.png" alt="Logo Orange Money">
+    </div>
+    <h2>Orange Money</h2>
+    <p>Solutions de transfert simplifiées Cameroun ⇄ Maroc.</p>
+    <div class="card-action">Accéder au service &rarr;</div>
+  </a>
+
+  <!-- Wave Money / Web (Div complet : Bleu) -->
+  <a href="../VOOZ/index.html" class="service-card card-wave">
+    <div class="icon-container">
+      <img src="images/wave.png" alt="Logo Wave Money">
+    </div>
+    <h2>Wave Money</h2>
+    <p>Service de transaction instantané, fiable et transparent.</p>
+    <div class="card-action">Accéder au service &rarr;</div>
+  </a>
+
+  <!-- Prêt avec intérêt (Conserve sa couleur originale) -->
+  <button type="button" class="service-card card-loan" onclick="openLoanModal()">
+    <div class="icon-container">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#0b1120" stroke-width="2">
+        <path d="M6 18L18 6" stroke="currentColor" stroke-linecap="round" />
+        <circle cx="7.5" cy="7.5" r="2.2" stroke="currentColor" stroke-width="2" />
+        <circle cx="16.5" cy="16.5" r="2.2" stroke="currentColor" stroke-width="2" />
+      </svg>
+    </div>
+    <h2>Prêt avec intérêt</h2>
+    <p>Prêt à 50 % d'intérêt pour 30 jours, dès 100 MAD minimum.</p>
+    <div class="card-action">Simuler un prêt &rarr;</div>
+  </button>
+</div>
+
+<footer>
+  <a href="https://www.linkedin.com/in/clainn/" target="_blank" rel="noopener noreferrer">
+    Le concepteur de la plateforme
+  </a>
+</footer>
+
+<!-- MODALE PRÊT -->
+<div class="modal-overlay" id="loanModal" onclick="if(event.target===this) closeLoanModal()">
+  <div class="modal-window">
+    <div class="modal-head">
+      <div class="icon-container">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#0b1120" stroke-width="2">
+          <path d="M6 18L18 6" stroke="currentColor" stroke-linecap="round" />
+          <circle cx="7.5" cy="7.5" r="2.2" stroke="currentColor" stroke-width="2" />
+          <circle cx="16.5" cy="16.5" r="2.2" stroke="currentColor" stroke-width="2" />
+        </svg>
+      </div>
+      <button class="modal-close" onclick="closeLoanModal()" aria-label="Fermer">✕</button>
+    </div>
+    <h3>Simulateur de prêt</h3>
+    <p class="modal-sub">Taux fixe de <strong>50 % pour 30 jours</strong>. Montant minimum : <strong>100 MAD</strong>. Durée minimum : <strong>1 mois</strong>.</p>
+
+    <div class="field">
+      <label>Montant emprunté <span class="field-value" id="amountVal">100 MAD</span></label>
+      <div class="amount-input-row">
+        <input type="number" id="amountInput" min="100" max="500000" step="100" value="100"
+          placeholder="Ex : 5000" oninput="syncAmountFromInput()">
+        <span>MAD</span>
+      </div>
+      <input type="range" id="amount" min="100" max="500000" step="100" value="100" oninput="syncAmountFromSlider()">
+    </div>
+    <div class="field field-fixed-rate">
+      <label>Taux d'intérêt</label>
+      <span class="field-value field-value-fixed">50 % / 30 jours</span>
+    </div>
+    <div class="field">
+      <label>Durée <span class="field-value" id="durationVal">1 mois</span></label>
+      <input type="range" id="duration" min="1" max="24" step="1" value="1" oninput="calcLoan()">
+    </div>
+
+    <div class="result-panel">
+      <div class="result-row" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; margin-bottom: 6px;">
+        <span class="rlabel" style="font-weight:700; color:#fde047;">Votre devis</span>
+        <span class="rval" id="devisDate"></span>
+      </div>
+      <div class="result-row"><span class="rlabel">Mensualité</span><span class="rval" id="monthlyOut">— MAD</span></div>
+      <div class="result-row"><span class="rlabel">Total des intérêts</span><span class="rval" id="interestOut">— MAD</span></div>
+      <div class="result-row total"><span class="rlabel">Total à rembourser</span><span class="rval" id="totalOut">— MAD</span></div>
+    </div>
+
+    <div class="field">
+      <label for="clientName">Nom & Prénom</label>
+      <input type="text" id="clientName" class="client-field" placeholder="Votre nom complet">
+    </div>
+    <div class="field">
+      <label for="clientMessage">Votre message</label>
+      <textarea id="clientMessage" class="client-field" placeholder="Précisez votre besoin ou posez votre question…"></textarea>
+    </div>
+
+    <p class="modal-note">Simulation indicative : 50 % d'intérêt par période de 30 jours. Montant minimum 100 MAD, durée minimum 1 mois.</p>
+    <button class="modal-cta" onclick="requestLoanQuote()">
+      Envoyer mon devis sur WhatsApp
+    </button>
+  </div>
+</div>
+
+<script>
+  const amountEl = document.getElementById('amount');
+  const amountInputEl = document.getElementById('amountInput');
+  const durationEl = document.getElementById('duration');
+  const LOAN_WHATSAPP = '212772457478';
+  const LOAN_STORAGE_KEY = 'waveTransfertLoanDevis';
+  const LOAN_RATE = 0.50;
+  const LOAN_MIN = 100;
+  const LOAN_MAX = 500000;
+
+  function clampAmount(value) {
+    return Math.min(LOAN_MAX, Math.max(LOAN_MIN, value));
+  }
+
+  function formatMAD(n) {
+    return Math.round(n).toLocaleString('fr-FR') + ' MAD';
+  }
+
+  function syncAmountFromSlider() {
+    amountInputEl.value = amountEl.value;
+    calcLoan();
+  }
+
+  function syncAmountFromInput() {
+    const val = clampAmount(parseFloat(amountInputEl.value) || LOAN_MIN);
+    amountInputEl.value = val;
+    amountEl.value = val;
+    calcLoan();
+  }
+
+  function getLoanData() {
+    const P = clampAmount(parseFloat(amountEl.value) || LOAN_MIN);
+    const n = parseInt(durationEl.value, 10);
+    const interest = P * LOAN_RATE * n;
+    const total = P + interest;
+    const monthly = total / n;
+
+    return { P, n, interest, total, monthly };
+  }
+
+  function saveLoanDevis(data) {
+    try {
+      const history = JSON.parse(localStorage.getItem(LOAN_STORAGE_KEY) || '[]');
+      history.unshift(data);
+      localStorage.setItem(LOAN_STORAGE_KEY, JSON.stringify(history.slice(0, 20)));
+      localStorage.setItem(LOAN_STORAGE_KEY + 'Last', JSON.stringify(data));
+    } catch (err) {
+      console.warn('Sauvegarde devis impossible', err);
+    }
+  }
+
+  function loadLastLoanDevis() {
+    try {
+      const last = JSON.parse(localStorage.getItem(LOAN_STORAGE_KEY + 'Last') || 'null');
+      if (!last) return;
+
+      if (last.clientName) document.getElementById('clientName').value = last.clientName;
+      if (last.clientMessage) document.getElementById('clientMessage').value = last.clientMessage;
+      if (last.amount) {
+        amountEl.value = last.amount;
+        amountInputEl.value = last.amount;
+      }
+      if (last.duration) durationEl.value = last.duration;
+    } catch (err) {
+      console.warn('Chargement devis impossible', err);
+    }
+  }
+
+  function calcLoan() {
+    const { P, n, interest, total, monthly } = getLoanData();
+
+    amountEl.value = P;
+    amountInputEl.value = P;
+
+    document.getElementById('amountVal').textContent = formatMAD(P);
+    document.getElementById('durationVal').textContent = n + ' mois';
+    document.getElementById('devisDate').textContent = new Date().toLocaleDateString('fr-FR');
+    document.getElementById('monthlyOut').textContent = formatMAD(monthly);
+    document.getElementById('interestOut').textContent = formatMAD(interest);
+    document.getElementById('totalOut').textContent = formatMAD(total);
+  }
+
+  function requestLoanQuote() {
+    const clientName = document.getElementById('clientName').value.trim();
+    const clientMessage = document.getElementById('clientMessage').value.trim();
+
+    if (!clientName) {
+      alert('Veuillez indiquer votre nom et prénom pour envoyer le devis.');
+      document.getElementById('clientName').focus();
+      return;
+    }
+
+    const { P, n, interest, total, monthly } = getLoanData();
+    const dateStr = new Date().toLocaleString('fr-FR');
+
+    const devisData = {
+      clientName,
+      clientMessage,
+      amount: P,
+      duration: n,
+      rate: '50 % / 30 jours',
+      monthly,
+      interest,
+      total,
+      date: dateStr,
+      whatsapp: LOAN_WHATSAPP
+    };
+
+    saveLoanDevis(devisData);
+
+    let msg = `*DEMANDE DE DEVIS — PRÊT*%0A%0A`;
+    msg += `*Nom:* ${clientName}%0A`;
+    if (clientMessage) msg += `*Message client:* ${clientMessage}%0A%0A`;
+    msg += `*Montant emprunté:* ${formatMAD(P)}%0A`;
+    msg += `*Durée:* ${n} mois%0A`;
+    msg += `*Taux:* 50 % / 30 jours%0A`;
+    msg += `*Mensualité:* ${formatMAD(monthly)}%0A`;
+    msg += `*Total intérêts:* ${formatMAD(interest)}%0A`;
+    msg += `*Total à rembourser:* ${formatMAD(total)}%0A`;
+    msg += `--------------------------------%0A`;
+    msg += `Date: ${dateStr}%0A`;
+    msg += `Merci de confirmer ce devis.`;
+
+    window.open(`https://wa.me/${LOAN_WHATSAPP}?text=${msg}`, '_blank');
+  }
+
+  function openLoanModal() {
+    document.getElementById('loanModal').classList.add('open');
+    loadLastLoanDevis();
+    calcLoan();
+  }
+  function closeLoanModal() {
+    document.getElementById('loanModal').classList.remove('open');
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLoanModal(); });
+
+  calcLoan();
+</script>
+</body>
+</html>

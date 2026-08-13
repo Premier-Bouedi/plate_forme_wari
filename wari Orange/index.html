@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wari Express — Orange Money</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=Inter:wght@400;600;700&family=Space+Mono:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../shared/screenshot.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-left">
+            <div class="brand">CM ⇄ MA Wari Orange Money</div>
+            <div class="small">Transfert Instantané · Service 7j/7</div>
+        </div>
+        <div class="header-center">
+            <img src="./images/orange-logo.jpg" alt="Orange Money Logo">
+        </div>
+        <div class="header-right">
+            <a href="../acuille/indexAcuille.html" class="btn-back-home" title="Retour à l'accueil">← Accueil</a>
+            <span class="small fw-bold">Orange Money</span>
+        </div>
+    </header>
+
+    <div class="main-layout-grid">
+        <div class="col-panel col-left">
+            <h2>Comment ça marche avec Orange Money?</h2>
+            <div class="fee-info">Frais Orange Money : 5% envoi + 10% réception</div>
+            <div class="section-label mb-2 mt-2">Avant la transaction</div>
+            <ul class="process-steps mb-0">
+                <li><span class="process-step-num">1</span> Choisissez le numéro Orange Money</li>
+                <li><span class="process-step-num">2</span> Entrez le montant (calcul automatique)</li>
+                <li><span class="process-step-num">3</span> Effectuez le dépôt Orange Money</li>
+            </ul>
+
+            <div class="section-label mb-2 mt-4">Après la transaction</div>
+            <ul class="process-steps">
+                <li><span class="process-step-num">1</span> Remplissez votre nom</li>
+                <li><span class="process-step-num">2</span> Ajoutez la ref et la capture SMS Orange</li>
+                <li><span class="process-step-num">3</span> Envoyez sur WhatsApp pour validation</li>
+            </ul>
+        </div>
+
+        <div class="col-panel col-center">
+            <div class="center-card">
+                <div class="toggle-row">
+                    <button id="btnGM" class="btn btn-toggle active">Cameroun → Maroc</button>
+                    <button id="btnMG" class="btn btn-toggle">Maroc → Cameroun</button>
+                </div>
+                <div class="flag-accent cm" id="flagAccent"><span></span><span></span><span></span></div>
+
+                <div class="transaction-numbers-wrapper">
+                    <label class="form-label text-center d-block mb-2">Choisir le numéro Orange Money</label>
+                    <div class="contacts-center">
+                        <div class="contact-item orange">
+                            <div class="contact-num">06 86 15 44 72</div>
+                            <div class="contact-name">Loïc kenmogne Tchuente</div>
+                            <button class="btn-copy"
+                                onclick="copyText('06 86 15 44 72 - Loïc kenmogne Tchuente', this)">Copier</button>
+                        </div>
+                        <div class="contact-item orange">
+                            <div class="contact-num">06 86 15 77 07</div>
+                            <div class="contact-name">Loïc kenmogne loïc</div>
+                            <button class="btn-copy"
+                                onclick="copyText('06 86 15 77 07 - Loïc kenmogne loïc', this)">Copier</button>
+                        </div>
+                    </div>
+                </div>
+
+                <label for="amount" class="form-label">Vous envoyez via Orange Money</label>
+                <div class="input-group mb-2">
+                    <input type="number" id="amount" class="form-control" placeholder="100000" title="Montant envoyé">
+                    <span class="input-group-text" id="inputUnit">FCFA</span>
+                </div>
+
+                <div class="bounce-arrow">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="4" x2="12" y2="20"></line>
+                        <polyline points="19 13 12 20 5 13"></polyline>
+                    </svg>
+                </div>
+
+                <label for="result" class="form-label">Bénéficiaire reçoit</label>
+                <div class="input-group mb-1">
+                    <input type="text" id="result" class="form-control fw-bold" readonly title="Montant reçu">
+                    <span class="input-group-text" id="resultUnit">Dhs</span>
+                </div>
+                <small id="info" class="text-muted d-block mb-3"></small>
+
+                <hr style="border-color: rgba(0,0,0,0.1); margin: 16px 0;">
+                <h5 class="text-center mb-1 fw-bold" style="color: var(--orange);">Validation Orange Money</h5>
+                <p class="whatsapp-contact-line">WhatsApp : <strong>+212 614 717 917</strong></p>
+
+                <label for="nom" class="form-label">Nom & Prénom</label>
+                <input type="text" id="nom" class="form-control mb-3 form-control-custom" placeholder="Votre nom">
+
+                <div class="screenshot-block screenshot-block-main">
+                    <button type="button" class="btn-screenshot-unified"
+                        onclick="triggerScreenshotChoice('mainScreenshot', 'mainCamera')">
+                        <svg class="screenshot-camera-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                            <circle cx="12" cy="13" r="4" />
+                        </svg>
+                        Prendre ou télécharger une capture d'écran
+                    </button>
+                    <input type="file" id="mainScreenshot" accept="image/*" class="d-none">
+                    <input type="file" id="mainCamera" accept="image/*" capture="environment" class="d-none">
+                    <img id="screenshotPreview" class="screenshot-preview" alt="Aperçu capture SMS">
+                    <p class="screenshot-filename" id="screenshotFilename"></p>
+                </div>
+
+                <button id="wa" class="btn btn-whatsapp-send w-100" data-bs-toggle="modal"
+                    data-bs-target="#transactionModal">📲 Envoyer / Valider</button>
+            </div>
+        </div>
+
+        <div class="col-panel col-right">
+            <h5 class="about-title">À propos de nos services</h5>
+            <div class="about-text">
+                <p>Transferts Orange Money entre le Cameroun et le Maroc. Service rapide, sécurisé et fiable, disponible 7j/7.</p>
+                <p>Envoyez votre capture SMS Orange Money pour une validation immédiate de votre transaction.</p>
+            </div>
+
+            <h5 class="about-title mt-4">Nos engagements</h5>
+            <ul class="commitments-list">
+                <li><span class="check-icon">✓</span> Rapidité</li>
+                <li><span class="check-icon">✓</span> Sécurité</li>
+                <li><span class="check-icon">✓</span> Fiabilité</li>
+                <li><span class="check-icon">✓</span> Suivi en temps réel</li>
+            </ul>
+        </div>
+    </div>
+
+    <button class="btn-float-aide" id="btnAide" title="Aide">?</button>
+
+    <div class="modal fade" id="transactionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fs-5 fw-bold">Validation Orange Money</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center" id="modalQuestionBody">
+                    <p class="text-muted mb-4 small">Avez-vous déjà effectué la transaction ?</p>
+                    <button id="modalBtnNon" class="btn btn-outline-danger me-2 px-4 fw-bold">Non</button>
+                    <button id="modalBtnOui" class="btn btn-outline-success px-4 fw-bold">Oui</button>
+                </div>
+                <div class="modal-body" id="modalDetailsBody" style="display: none;">
+                    <label for="modalRef" class="form-label text-dark">N° Transaction Orange (Facultatif)</label>
+                    <input type="text" id="modalRef" class="form-control mb-3 form-control-custom"
+                        placeholder="Ex: OM123456">
+
+                    <button id="modalBtnSend" class="btn btn-whatsapp-send w-100">📲 Envoyer / Valider</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="screenshot-choice-menu" id="screenshotChoiceMenu"
+        onclick="if(event.target===this) closeScreenshotMenu()">
+        <div class="screenshot-choice-panel">
+            <h6>Ajouter une preuve</h6>
+            <button type="button" onclick="pickScreenshotSource('camera')">📷 Prendre une photo</button>
+            <button type="button" onclick="pickScreenshotSource('gallery')">🖼️ Télécharger une image</button>
+            <button type="button" class="btn-cancel-screenshot" onclick="closeScreenshotMenu()">Annuler</button>
+        </div>
+    </div>
+
+    <footer class="legal-footer">
+        Service indépendant. Pas affilié à Orange.
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../shared/whatsapp-share.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -17,14 +17,20 @@ function isMobileDevice() {
 
 function openWhatsAppTarget(phone, text) {
     const p = normalizePhone(phone);
-    const encoded = encodeURIComponent(text);
+    const url = `https://wa.me/${p}?text=${encodeURIComponent(text)}`;
 
     if (isMobileDevice()) {
-        window.location.href = `whatsapp://send?phone=${p}&text=${encoded}`;
+        window.location.href = url;
         return;
     }
 
-    window.open(`https://web.whatsapp.com/send?phone=${p}&text=${encoded}`, '_blank');
+    window.open(url, '_blank');
+}
+
+function withRecipientFooter(text, phone) {
+    const displayPhone = formatPhoneDisplay(phone);
+    if (text.includes(displayPhone)) return text;
+    return `${text}\n\n📞 Destinataire : ${displayPhone}`;
 }
 
 async function prepareWhatsAppImage(file) {
@@ -162,12 +168,42 @@ function downloadImageFile(file, downloadName) {
 }
 
 function sendWhatsAppTextOnly(phone, text) {
-    openWhatsAppTarget(phone, text);
+    phone = normalizePhone(phone);
+    openWhatsAppTarget(phone, withRecipientFooter(text, phone));
     return { method: 'text' };
 }
 
 async function sendWhatsAppWithImageDownload({ phone, text, file, downloadName }) {
-    openWhatsAppTarget(phone, `${text}\n\nCapture d'écran jointe 👇`);
+    phone = normalizePhone(phone);
+    const message = withRecipientFooter(`${text}\n\nCapture d'écran jointe 👇`, phone);
+
+    if (file && isMobileDevice()) {
+        try {
+            const imageFile = await prepareWhatsAppImage(file);
+            const shared = await tryNativeShare({
+                files: [imageFile],
+                text: message,
+                title: 'Preuve de transaction'
+            });
+
+            if (shared === true) {
+                alert(
+                    'Photo + message prêts.\n\n' +
+                    '1. Choisissez WhatsApp\n' +
+                    `2. Envoyez au numéro ${formatPhoneDisplay(phone)}`
+                );
+                return { method: 'share' };
+            }
+
+            if (shared === false) {
+                return { method: 'cancelled' };
+            }
+        } catch (err) {
+            // fallback below
+        }
+    }
+
+    openWhatsAppTarget(phone, message);
 
     if (!file) {
         return { method: 'text' };
@@ -181,7 +217,7 @@ async function sendWhatsAppWithImageDownload({ phone, text, file, downloadName }
     }
 
     alert(
-        '1. WhatsApp s\'ouvre avec le message\n' +
+        `1. WhatsApp s'ouvre vers ${formatPhoneDisplay(phone)}\n` +
         '2. L\'image a été téléchargée\n' +
         '3. Joignez-la dans WhatsApp avec 📎'
     );
@@ -214,7 +250,7 @@ function setupDualWhatsAppButtons({
 }) {
     const sansBtn = document.getElementById(sansButtonId);
     const avecBtn = document.getElementById(avecButtonId);
-    const targetPhone = phone || NUMERO_WHATSAPP_TRANSFERT;
+    const targetPhone = NUMERO_WHATSAPP_TRANSFERT;
 
     function refreshAvecButton() {
         if (avecBtn) {

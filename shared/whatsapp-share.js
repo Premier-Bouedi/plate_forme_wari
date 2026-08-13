@@ -358,15 +358,11 @@ function hasScreenshot(galleryInputId, cameraInputId, previewId = 'screenshotPre
 
 async function sendTransactionWhatsApp({ phone, text, galleryInputId, cameraInputId, previewId }) {
     const file = await getScreenshotFileAsync(galleryInputId, cameraInputId, previewId);
-    if (!file) {
-        alert('Veuillez ajouter une capture d\'écran ou une photo avant d\'envoyer.');
-        return { method: 'missing-photo' };
-    }
 
     return sendWhatsAppWithScreenshot({
         phone: phone || NUMERO_WHATSAPP_TRANSFERT,
         text,
-        file
+        file: file || null
     });
 }
 
@@ -466,13 +462,6 @@ function bindWhatsAppSendButton({
             event.stopPropagation();
             alert('Veuillez indiquer votre nom et prénom avant d\'envoyer.');
             nameInput.focus();
-            return;
-        }
-
-        if (!hasScreenshot(galleryInputId, cameraInputId, previewId)) {
-            event.preventDefault();
-            event.stopPropagation();
-            alert('Veuillez ajouter une capture d\'écran ou une photo avant d\'envoyer.');
             return;
         }
 

@@ -79,6 +79,9 @@ document.getElementById('modalBtnNon').onclick = async () => {
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
     msg += `*Frais:* 5% Envoi + 10% Réception\n`;
     msg += `--------------------------------`;
+    if (hasScreenshot('mainScreenshot', 'mainCamera', 'screenshotPreview')) {
+        msg += `\n*Capture SMS Orange:* Jointe avec ce message.`;
+    }
 
     const sendResult = await sendTransactionWhatsApp({
         text: msg,
@@ -86,7 +89,7 @@ document.getElementById('modalBtnNon').onclick = async () => {
         cameraInputId: 'mainCamera',
         previewId: 'screenshotPreview'
     });
-    if (sendResult.method === 'cancelled' || sendResult.method === 'missing-photo') return;
+    if (sendResult.method === 'cancelled') return;
 
     closeBootstrapModal('transactionModal');
 };
@@ -103,7 +106,9 @@ document.getElementById('modalBtnSend').onclick = async () => {
     msg += `*Statut:* Transaction Orange Money effectuée.\n`;
     msg += `*Nom:* ${document.getElementById('nom').value || 'Non renseigné'}\n`;
     if (refVal) msg += `*Ref OM:* ${refVal}\n`;
-    msg += `*Capture SMS Orange:* Jointe avec ce message.\n`;
+    if (hasScreenshot('mainScreenshot', 'mainCamera', 'screenshotPreview')) {
+        msg += `*Capture SMS Orange:* Jointe avec ce message.\n`;
+    }
     msg += `*Sens:* ${sens == "GM" ? "Cameroun → Maroc" : "Maroc → Cameroun"}\n`;
     msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
@@ -118,7 +123,7 @@ document.getElementById('modalBtnSend').onclick = async () => {
         previewId: 'screenshotPreview'
     });
 
-    if (sendResult.method === 'cancelled' || sendResult.method === 'missing-photo') return;
+    if (sendResult.method === 'cancelled') return;
 
     closeBootstrapModal('transactionModal');
 };

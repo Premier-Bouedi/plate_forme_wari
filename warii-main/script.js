@@ -103,6 +103,9 @@ document.getElementById('modalBtnNon').onclick = async () => {
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
     msg += `*Frais:* Envoi gratuit · Réception 13%\n`;
     msg += `--------------------------------`;
+    if (hasScreenshot('mainScreenshot', 'mainCamera', 'screenshotPreview')) {
+        msg += `\n*Capture d'écran:* Jointe avec ce message.`;
+    }
 
     const sendResult = await sendTransactionWhatsApp({
         text: msg,
@@ -110,7 +113,7 @@ document.getElementById('modalBtnNon').onclick = async () => {
         cameraInputId: 'mainCamera',
         previewId: 'screenshotPreview'
     });
-    if (sendResult.method === 'cancelled' || sendResult.method === 'missing-photo') return;
+    if (sendResult.method === 'cancelled') return;
 
     closeBootstrapModal('transactionModal');
 };
@@ -127,7 +130,9 @@ document.getElementById('modalBtnSend').onclick = async () => {
     msg += `*Statut:* Transaction Airtel Money effectuée.\n`;
     msg += `*Nom:* ${nom?.value || 'Non renseigné'}\n`;
     if (refVal) msg += `*Ref Transaction:* ${refVal}\n`;
-    msg += `*Capture d'écran:* Jointe avec ce message.\n`;
+    if (hasScreenshot('mainScreenshot', 'mainCamera', 'screenshotPreview')) {
+        msg += `*Capture d'écran:* Jointe avec ce message.\n`;
+    }
     msg += `*Sens:* ${sens == "GM" ? "Gabon → Maroc" : "Maroc → Gabon"}\n`;
     msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
@@ -142,7 +147,7 @@ document.getElementById('modalBtnSend').onclick = async () => {
         previewId: 'screenshotPreview'
     });
 
-    if (sendResult.method === 'cancelled' || sendResult.method === 'missing-photo') return;
+    if (sendResult.method === 'cancelled') return;
 
     closeBootstrapModal('transactionModal');
 };

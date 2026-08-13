@@ -14,6 +14,19 @@ const SCREENSHOT_OPTS = {
 
 setupScreenshotCapture(SCREENSHOT_OPTS);
 
+bindWhatsAppSendButton({
+    buttonId: 'wa',
+    galleryInputId: 'mainScreenshot',
+    cameraInputId: 'mainCamera',
+    previewId: 'screenshotPreview',
+    nameInputId: 'nom',
+    onBeforeModal: () => {
+        document.getElementById('modalQuestionBody').style.display = 'block';
+        document.getElementById('modalDetailsBody').style.display = 'none';
+        document.getElementById('modalRef').value = '';
+    }
+});
+
 btnGM.onclick = () => setSens("GM");
 btnMG.onclick = () => setSens("MG");
 
@@ -56,12 +69,6 @@ function effectuerCalcul() {
 
 amount.addEventListener("input", effectuerCalcul);
 
-wa.onclick = () => {
-    document.getElementById('modalQuestionBody').style.display = 'block';
-    document.getElementById('modalDetailsBody').style.display = 'none';
-    document.getElementById('modalRef').value = '';
-};
-
 document.getElementById('modalBtnNon').onclick = async () => {
     let msg = `*DEMANDE ORANGE MONEY WARI EXPRESS*\n\n`;
     msg += `*Statut:* Je souhaite effectuer une transaction Orange Money.\n`;
@@ -71,12 +78,15 @@ document.getElementById('modalBtnNon').onclick = async () => {
     msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
     msg += `*Frais:* 5% Envoi + 10% Réception\n`;
-    msg += `--------------------------------\n`;
-    msg += `Date: ${new Date().toLocaleString('fr-FR')}`;
+    msg += `--------------------------------`;
 
-    const screenshotFile = getScreenshotFile('mainScreenshot', 'mainCamera');
-    const sendResult = await sendToWhatsAppTransfert(msg, screenshotFile);
-    if (sendResult.method === 'cancelled') return;
+    const sendResult = await sendTransactionWhatsApp({
+        text: msg,
+        galleryInputId: 'mainScreenshot',
+        cameraInputId: 'mainCamera',
+        previewId: 'screenshotPreview'
+    });
+    if (sendResult.method === 'cancelled' || sendResult.method === 'missing-photo') return;
 
     closeBootstrapModal('transactionModal');
 };
@@ -88,18 +98,12 @@ document.getElementById('modalBtnOui').onclick = () => {
 
 document.getElementById('modalBtnSend').onclick = async () => {
     let refVal = document.getElementById('modalRef').value;
-    let screenshotFile = getScreenshotFile('mainScreenshot', 'mainCamera');
-
-    if (!screenshotFile) {
-        alert('Veuillez ajouter une capture d\'écran ou une photo avant d\'envoyer.');
-        return;
-    }
 
     let msg = `*TRANSFERT ORANGE MONEY WARI EXPRESS*\n\n`;
     msg += `*Statut:* Transaction Orange Money effectuée.\n`;
     msg += `*Nom:* ${document.getElementById('nom').value || 'Non renseigné'}\n`;
     if (refVal) msg += `*Ref OM:* ${refVal}\n`;
-    if (screenshotFile) msg += `*Capture SMS Orange:* Jointe ci-dessous.\n`;
+    msg += `*Capture SMS Orange:* Jointe avec ce message.\n`;
     msg += `*Sens:* ${sens == "GM" ? "Cameroun → Maroc" : "Maroc → Cameroun"}\n`;
     msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
@@ -107,9 +111,14 @@ document.getElementById('modalBtnSend').onclick = async () => {
     msg += `--------------------------------\n`;
     msg += `Merci de valider la transaction Orange Money`;
 
-    const sendResult = await sendToWhatsAppTransfert(msg, screenshotFile);
+    const sendResult = await sendTransactionWhatsApp({
+        text: msg,
+        galleryInputId: 'mainScreenshot',
+        cameraInputId: 'mainCamera',
+        previewId: 'screenshotPreview'
+    });
 
-    if (sendResult.method === 'cancelled') return;
+    if (sendResult.method === 'cancelled' || sendResult.method === 'missing-photo') return;
 
     closeBootstrapModal('transactionModal');
 };

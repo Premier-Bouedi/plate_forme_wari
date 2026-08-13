@@ -30,6 +30,19 @@ const SCREENSHOT_OPTS = {
 
 setupScreenshotCapture(SCREENSHOT_OPTS);
 
+bindWhatsAppSendButton({
+    buttonId: 'wa',
+    galleryInputId: 'mainScreenshot',
+    cameraInputId: 'mainCamera',
+    previewId: 'screenshotPreview',
+    nameInputId: 'nom',
+    onBeforeModal: () => {
+        document.getElementById('modalQuestionBody').style.display = 'block';
+        document.getElementById('modalDetailsBody').style.display = 'none';
+        document.getElementById('modalRef').value = '';
+    }
+});
+
 // Toggle sens
 if (btnGM) btnGM.addEventListener('click', () => setSens('GM'));
 if (btnMG) btnMG.addEventListener('click', () => setSens('MG'));
@@ -80,14 +93,6 @@ if (amount) {
     amount.addEventListener("input", effectuerCalcul);
 }
 
-if (wa) {
-    wa.addEventListener('click', () => {
-        document.getElementById('modalQuestionBody').style.display = 'block';
-        document.getElementById('modalDetailsBody').style.display = 'none';
-        document.getElementById('modalRef').value = '';
-    });
-}
-
 document.getElementById('modalBtnNon').onclick = async () => {
     let msg = `*DEMANDE AIRTEL MONEY WARI EXPRESS*\n\n`;
     msg += `*Statut:* Je souhaite effectuer une transaction Airtel Money.\n`;
@@ -97,12 +102,15 @@ document.getElementById('modalBtnNon').onclick = async () => {
     msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
     msg += `*Frais:* Envoi gratuit · Réception 13%\n`;
-    msg += `--------------------------------\n`;
-    msg += `Date: ${new Date().toLocaleString('fr-FR')}`;
+    msg += `--------------------------------`;
 
-    const screenshotFile = getScreenshotFile('mainScreenshot', 'mainCamera');
-    const sendResult = await sendToWhatsAppTransfert(msg, screenshotFile);
-    if (sendResult.method === 'cancelled') return;
+    const sendResult = await sendTransactionWhatsApp({
+        text: msg,
+        galleryInputId: 'mainScreenshot',
+        cameraInputId: 'mainCamera',
+        previewId: 'screenshotPreview'
+    });
+    if (sendResult.method === 'cancelled' || sendResult.method === 'missing-photo') return;
 
     closeBootstrapModal('transactionModal');
 };
@@ -114,18 +122,12 @@ document.getElementById('modalBtnOui').onclick = () => {
 
 document.getElementById('modalBtnSend').onclick = async () => {
     let refVal = document.getElementById('modalRef').value;
-    let screenshotFile = getScreenshotFile('mainScreenshot', 'mainCamera');
-
-    if (!screenshotFile) {
-        alert('Veuillez ajouter une capture d\'écran ou une photo avant d\'envoyer.');
-        return;
-    }
 
     let msg = `*TRANSACTION AIRTEL MONEY WARI EXPRESS*\n\n`;
     msg += `*Statut:* Transaction Airtel Money effectuée.\n`;
     msg += `*Nom:* ${nom?.value || 'Non renseigné'}\n`;
     if (refVal) msg += `*Ref Transaction:* ${refVal}\n`;
-    if (screenshotFile) msg += `*Capture d'écran:* Jointe ci-dessous.\n`;
+    msg += `*Capture d'écran:* Jointe avec ce message.\n`;
     msg += `*Sens:* ${sens == "GM" ? "Gabon → Maroc" : "Maroc → Gabon"}\n`;
     msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
@@ -133,9 +135,14 @@ document.getElementById('modalBtnSend').onclick = async () => {
     msg += `--------------------------------\n`;
     msg += `Merci de valider la transaction Airtel Money`;
 
-    const sendResult = await sendToWhatsAppTransfert(msg, screenshotFile);
+    const sendResult = await sendTransactionWhatsApp({
+        text: msg,
+        galleryInputId: 'mainScreenshot',
+        cameraInputId: 'mainCamera',
+        previewId: 'screenshotPreview'
+    });
 
-    if (sendResult.method === 'cancelled') return;
+    if (sendResult.method === 'cancelled' || sendResult.method === 'missing-photo') return;
 
     closeBootstrapModal('transactionModal');
 };

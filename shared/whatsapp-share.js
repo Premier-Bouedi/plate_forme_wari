@@ -4,13 +4,15 @@ function normalizePhone(phone) {
     return String(phone || NUMERO_WHATSAPP_TRANSFERT).replace(/\D/g, '');
 }
 
-function isMobileDevice() {
-    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+function formatPhoneDisplay(phone) {
+    const p = normalizePhone(phone);
+    if (p === '212614717917') return '+212 614 717 917';
+    if (p.startsWith('212')) return '+' + p.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, '$1 $2 $3 $4');
+    return '+' + p;
 }
 
-function openWhatsAppChat(phone, text) {
-    const p = normalizePhone(phone);
-    window.open(`https://wa.me/${p}?text=${encodeURIComponent(text)}`, '_blank');
+function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 function openWhatsAppTarget(phone, text) {
@@ -29,38 +31,23 @@ async function prepareWhatsAppImage(file) {
     if (typeof createImageBitmap === 'function') {
         try {
             const bitmap = await createImageBitmap(file);
-            const maxSize = 1600;
-            let width = bitmap.width;
-            let height = bitmap.height;
-
-            if (width > maxSize || height > maxSize) {
-                const ratio = Math.min(maxSize / width, maxSize / height);
-                width = Math.round(width * ratio);
-                height = Math.round(height * ratio);
-            }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
-
-            const blob = await new Promise((resolve, reject) => {
-                canvas.toBlob((result) => {
-                    if (result) resolve(result);
-                    else reject(new Error('Conversion image impossible'));
-                }, 'image/jpeg', 0.88);
-            });
-
-            return new File([blob], 'preuve-transaction.jpg', {
-                type: 'image/jpeg',
-                lastModified: Date.now()
-            });
+            return canvasFromBitmap(bitmap);
         } catch (err) {
-            // Fallback below for older browsers
+            // fallback below
         }
     }
 
-    if (file.type === 'image/jpeg' && file.size <= 5 * 1024 * 1024) {
+    if (file.type.startsWith('image/')) {
+        try {
+            const dataUrl = await readFileAsDataURL(file);
+            const img = await loadImage(dataUrl);
+            return canvasFromImage(img);
+        } catch (err) {
+            // fallback below
+        }
+    }
+
+    if (file.type === 'image/jpeg' && file.size <= 8 * 1024 * 1024) {
         return new File([file], 'preuve-transaction.jpg', {
             type: 'image/jpeg',
             lastModified: Date.now()
@@ -70,8 +57,86 @@ async function prepareWhatsAppImage(file) {
     throw new Error('Impossible de préparer l\'image');
 }
 
+function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
+}
+
+async function canvasFromBitmap(bitmap) {
+    const maxSize = 1600;
+    let width = bitmap.width;
+    let height = bitmap.height;
+
+    if (width > maxSize || height > maxSize) {
+        const ratio = Math.min(maxSize / width, maxSize / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+    return canvasToJpegFile(canvas);
+}
+
+async function canvasFromImage(img) {
+    const maxSize = 1600;
+    let width = img.naturalWidth || img.width;
+    let height = img.naturalHeight || img.height;
+
+    if (width > maxSize || height > maxSize) {
+        const ratio = Math.min(maxSize / width, maxSize / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+    return canvasToJpegFile(canvas);
+}
+
+function canvasToJpegFile(canvas) {
+    return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+            if (!blob) {
+                reject(new Error('Conversion image impossible'));
+                return;
+            }
+            resolve(new File([blob], 'preuve-transaction.jpg', {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+            }));
+        }, 'image/jpeg', 0.88);
+    });
+}
+
+async function dataUrlToFile(dataUrl) {
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    return new File([blob], 'preuve-transaction.jpg', {
+        type: blob.type || 'image/jpeg',
+        lastModified: Date.now()
+    });
+}
+
 async function copyImageToClipboard(file) {
-    const jpegBlob = file.type === 'image/jpeg'
+    const jpegFile = file.type === 'image/jpeg'
         ? file
         : await prepareWhatsAppImage(file);
 
@@ -80,9 +145,20 @@ async function copyImageToClipboard(file) {
     }
 
     await navigator.clipboard.write([
-        new ClipboardItem({ 'image/jpeg': jpegBlob })
+        new ClipboardItem({ 'image/jpeg': jpegFile })
     ]);
     return true;
+}
+
+function downloadImageFile(file) {
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = file.name || 'preuve-transaction.jpg';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 async function tryNativeShare(shareData) {
@@ -101,8 +177,44 @@ async function tryNativeShare(shareData) {
     }
 }
 
+function showWhatsAppPhotoHelp(phone, method) {
+    const displayPhone = formatPhoneDisplay(phone);
+
+    if (method === 'share') {
+        alert(
+            'Photo + message prêts.\n\n' +
+            '1. Choisissez WhatsApp\n' +
+            `2. Envoyez au numéro ${displayPhone}\n` +
+            '3. Vérifiez que la photo est bien jointe avant d\'envoyer'
+        );
+        return;
+    }
+
+    if (method === 'clipboard') {
+        alert(
+            'Photo copiée.\n\n' +
+            `1. WhatsApp s'ouvre vers ${displayPhone}\n` +
+            '2. Cliquez dans la zone de message\n' +
+            '3. Collez la photo : Ctrl+V\n' +
+            '4. Envoyez le message'
+        );
+        return;
+    }
+
+    if (method === 'download') {
+        alert(
+            'Photo téléchargée.\n\n' +
+            `1. WhatsApp s'ouvre vers ${displayPhone}\n` +
+            '2. Cliquez sur 📎 (trombone)\n' +
+            '3. Joignez le fichier preuve-transaction.jpg\n' +
+            '4. Envoyez le message'
+        );
+    }
+}
+
 async function sendWhatsAppWithScreenshot({ phone, text, file }) {
     phone = normalizePhone(phone);
+    const displayPhone = formatPhoneDisplay(phone);
 
     if (!file) {
         openWhatsAppTarget(phone, text);
@@ -114,63 +226,37 @@ async function sendWhatsAppWithScreenshot({ phone, text, file }) {
         imageFile = await prepareWhatsAppImage(file);
     } catch (err) {
         openWhatsAppTarget(phone, text + '\n\n(Joignez la photo manuellement dans WhatsApp.)');
-        alert('Impossible de préparer la photo. WhatsApp va s\'ouvrir : joignez l\'image avec 📎.');
+        alert('Impossible de préparer la photo. Joignez l\'image avec 📎 dans WhatsApp.');
         return { method: 'manual' };
     }
 
-    const shareText = `${text}\n\n📞 Destinataire : +${phone}`;
+    const shareText = `${text}\n\n📞 ${displayPhone}`;
 
-    // 1. Photo + message (idéal mobile)
-    let shared = await tryNativeShare({
-        files: [imageFile],
-        text: shareText,
-        title: 'Preuve de transaction'
-    });
-    if (shared === true) {
-        if (isMobileDevice()) {
-            alert('Choisissez WhatsApp, puis envoyez au numéro +212 614 717 917');
+    const shareAttempts = [
+        { files: [imageFile], text: shareText, title: 'Preuve de transaction' },
+        { files: [imageFile], text: text },
+        { files: [imageFile], title: 'Preuve de transaction' }
+    ];
+
+    for (const shareData of shareAttempts) {
+        const shared = await tryNativeShare(shareData);
+        if (shared === true) {
+            showWhatsAppPhotoHelp(phone, 'share');
+            return { method: 'share' };
         }
-        return { method: 'share' };
+        if (shared === false) return { method: 'cancelled' };
     }
-    if (shared === false) return { method: 'cancelled' };
 
-    // 2. Photo + message sans titre
-    shared = await tryNativeShare({ files: [imageFile], text: text });
-    if (shared === true) return { method: 'share' };
-    if (shared === false) return { method: 'cancelled' };
-
-    // 3. Photo seule → WhatsApp puis choix du contact
-    shared = await tryNativeShare({ files: [imageFile], title: 'Preuve de transaction' });
-    if (shared === true) {
-        alert(
-            'Photo partagée.\n\n' +
-            'Dans WhatsApp, choisissez le contact :\n+212 614 717 917\n\n' +
-            'Collez ensuite le message si besoin.'
-        );
-        openWhatsAppTarget(phone, text);
-        return { method: 'share-file' };
-    }
-    if (shared === false) return { method: 'cancelled' };
-
-    // 4. Ordinateur : copier la photo + ouvrir WhatsApp Web
     try {
         await copyImageToClipboard(imageFile);
         openWhatsAppTarget(phone, text);
-        alert(
-            '✅ Photo copiée !\n\n' +
-            '1. WhatsApp s\'ouvre vers +212 614 717 917\n' +
-            '2. Cliquez dans la zone de message\n' +
-            '3. Collez la photo : Ctrl+V (ou clic droit → Coller)\n' +
-            '4. Envoyez le message'
-        );
+        showWhatsAppPhotoHelp(phone, 'clipboard');
         return { method: 'clipboard' };
     } catch (err) {
+        downloadImageFile(imageFile);
         openWhatsAppTarget(phone, text);
-        alert(
-            'WhatsApp va s\'ouvrir.\n\n' +
-            'Joignez la photo avec l\'icône 📎 dans la conversation +212 614 717 917.'
-        );
-        return { method: 'manual' };
+        showWhatsAppPhotoHelp(phone, 'download');
+        return { method: 'download' };
     }
 }
 
@@ -182,22 +268,28 @@ async function sendToWhatsAppTransfert(text, file) {
     });
 }
 
+async function sendToWhatsAppNumber(phone, text, file) {
+    return sendWhatsAppWithScreenshot({ phone, text, file });
+}
+
 function closeBootstrapModal(modalId) {
     const modal = bootstrap?.Modal?.getInstance(document.getElementById(modalId));
     if (modal) modal.hide();
 }
 
-let _screenshotFile = null;
+const _screenshotFiles = {};
 
 function setupScreenshotCapture({ galleryInputId, cameraInputId, previewId, filenameId }) {
     const galleryInput = galleryInputId ? document.getElementById(galleryInputId) : null;
     const cameraInput = cameraInputId ? document.getElementById(cameraInputId) : null;
     const preview = document.getElementById(previewId);
     const filenameEl = filenameId ? document.getElementById(filenameId) : null;
+    const storageKey = `${galleryInputId || ''}:${cameraInputId || ''}`;
 
     function handleFile(file) {
         if (!file || !file.type.startsWith('image/')) return;
 
+        _screenshotFiles[storageKey] = file;
         _screenshotFile = file;
 
         if (preview) {
@@ -230,7 +322,11 @@ function setupScreenshotCapture({ galleryInputId, cameraInputId, previewId, file
     }
 }
 
+let _screenshotFile = null;
+
 function getScreenshotFile(galleryInputId, cameraInputId) {
+    const storageKey = `${galleryInputId || ''}:${cameraInputId || ''}`;
+    if (_screenshotFiles[storageKey]) return _screenshotFiles[storageKey];
     if (_screenshotFile) return _screenshotFile;
 
     const galleryFile = document.getElementById(galleryInputId)?.files?.[0];
@@ -238,7 +334,45 @@ function getScreenshotFile(galleryInputId, cameraInputId) {
     return galleryFile || cameraFile || null;
 }
 
+async function getScreenshotFileAsync(galleryInputId, cameraInputId, previewId = 'screenshotPreview') {
+    const directFile = getScreenshotFile(galleryInputId, cameraInputId);
+    if (directFile) return directFile;
+
+    const preview = document.getElementById(previewId);
+    if (preview?.src?.startsWith('data:image')) {
+        try {
+            return await dataUrlToFile(preview.src);
+        } catch (err) {
+            return null;
+        }
+    }
+
+    return null;
+}
+
+function hasScreenshot(galleryInputId, cameraInputId, previewId = 'screenshotPreview') {
+    if (getScreenshotFile(galleryInputId, cameraInputId)) return true;
+    const preview = document.getElementById(previewId);
+    return Boolean(preview?.src?.startsWith('data:image') && preview.style.display !== 'none');
+}
+
+async function sendTransactionWhatsApp({ phone, text, galleryInputId, cameraInputId, previewId }) {
+    const file = await getScreenshotFileAsync(galleryInputId, cameraInputId, previewId);
+    if (!file) {
+        alert('Veuillez ajouter une capture d\'écran ou une photo avant d\'envoyer.');
+        return { method: 'missing-photo' };
+    }
+
+    return sendWhatsAppWithScreenshot({
+        phone: phone || NUMERO_WHATSAPP_TRANSFERT,
+        text,
+        file
+    });
+}
+
 function resetScreenshotCapture({ galleryInputId, cameraInputId, previewId, filenameId }) {
+    const storageKey = `${galleryInputId || ''}:${cameraInputId || ''}`;
+    delete _screenshotFiles[storageKey];
     _screenshotFile = null;
 
     const galleryInput = document.getElementById(galleryInputId);
@@ -312,4 +446,38 @@ function pickScreenshotSource(type) {
 
 function closeScreenshotMenu() {
     document.getElementById('screenshotChoiceMenu')?.classList.remove('open');
+}
+
+function bindWhatsAppSendButton({
+    buttonId,
+    galleryInputId,
+    cameraInputId,
+    previewId,
+    nameInputId,
+    onBeforeModal
+}) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+
+    button.addEventListener('click', (event) => {
+        const nameInput = nameInputId ? document.getElementById(nameInputId) : null;
+        if (nameInput && !nameInput.value.trim()) {
+            event.preventDefault();
+            event.stopPropagation();
+            alert('Veuillez indiquer votre nom et prénom avant d\'envoyer.');
+            nameInput.focus();
+            return;
+        }
+
+        if (!hasScreenshot(galleryInputId, cameraInputId, previewId)) {
+            event.preventDefault();
+            event.stopPropagation();
+            alert('Veuillez ajouter une capture d\'écran ou une photo avant d\'envoyer.');
+            return;
+        }
+
+        if (typeof onBeforeModal === 'function') {
+            onBeforeModal();
+        }
+    });
 }

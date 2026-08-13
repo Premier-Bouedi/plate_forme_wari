@@ -1,10 +1,12 @@
 let sens = "GM";
 
-// Taux et frais Airtel Money
+// Taux et frais Airtel Money — référence : 100 000 FCFA → 1 450 Dhs reçus
 const FRAIS_ENVOI = 0;
 const FRAIS_RECEPTION = 0.13;
-const TAUX_GM = 0.0145;
-const TAUX_MG = 61.0425;
+const REF_FCFA = 100000;
+const REF_DHS = 1450;
+const TAUX_GM = REF_DHS / (REF_FCFA * (1 - FRAIS_RECEPTION));
+const TAUX_MG = REF_FCFA / (REF_DHS * (1 - FRAIS_RECEPTION));
 const NUMERO_WHATSAPP = "212614717917";
 
 const btnGM = document.getElementById('btnGM');

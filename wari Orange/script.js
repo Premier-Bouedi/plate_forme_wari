@@ -5,28 +5,6 @@ const FRAIS_RECEPTION = 0.10;
 const TAUX_MG = 61.0425;
 const NUMERO_WHATSAPP = "212614717917";
 
-const SCREENSHOT_OPTS = {
-    galleryInputId: 'mainScreenshot',
-    cameraInputId: 'mainCamera',
-    previewId: 'screenshotPreview',
-    filenameId: 'screenshotFilename'
-};
-
-setupScreenshotCapture(SCREENSHOT_OPTS);
-
-bindWhatsAppSendButton({
-    buttonId: 'wa',
-    galleryInputId: 'mainScreenshot',
-    cameraInputId: 'mainCamera',
-    previewId: 'screenshotPreview',
-    nameInputId: 'nom',
-    onBeforeModal: () => {
-        document.getElementById('modalQuestionBody').style.display = 'block';
-        document.getElementById('modalDetailsBody').style.display = 'none';
-        document.getElementById('modalRef').value = '';
-    }
-});
-
 btnGM.onclick = () => setSens("GM");
 btnMG.onclick = () => setSens("MG");
 
@@ -69,67 +47,35 @@ function effectuerCalcul() {
 
 amount.addEventListener("input", effectuerCalcul);
 
-document.getElementById('modalBtnNon').onclick = async () => {
-    let msg = `*DEMANDE ORANGE MONEY WARI EXPRESS*\n\n`;
-    msg += `*Statut:* Je souhaite effectuer une transaction Orange Money.\n`;
-    msg += `*Êtes-vous en ligne ?*\n\n`;
-    msg += `*Nom:* ${document.getElementById('nom').value || 'Non renseigné'}\n`;
-    msg += `*Sens:* ${sens == "GM" ? "Cameroun → Maroc" : "Maroc → Cameroun"}\n`;
-    msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
-    msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
-    msg += `*Frais:* 5% Envoi + 10% Réception\n`;
-    msg += `--------------------------------`;
-    if (hasScreenshot('mainScreenshot', 'mainCamera', 'screenshotPreview')) {
-        msg += `\n*Capture SMS Orange:* Jointe avec ce message.`;
-    }
-
-    const sendResult = await sendTransactionWhatsApp({
-        text: msg,
-        galleryInputId: 'mainScreenshot',
-        cameraInputId: 'mainCamera',
-        previewId: 'screenshotPreview'
-    });
-    if (sendResult.method === 'cancelled') return;
-
-    closeBootstrapModal('transactionModal');
-};
-
-document.getElementById('modalBtnOui').onclick = () => {
-    document.getElementById('modalQuestionBody').style.display = 'none';
-    document.getElementById('modalDetailsBody').style.display = 'block';
-};
-
-document.getElementById('modalBtnSend').onclick = async () => {
-    let refVal = document.getElementById('modalRef').value;
-
+function buildWhatsAppMessage() {
     let msg = `*TRANSFERT ORANGE MONEY WARI EXPRESS*\n\n`;
-    msg += `*Statut:* Transaction Orange Money effectuée.\n`;
     msg += `*Nom:* ${document.getElementById('nom').value || 'Non renseigné'}\n`;
-    if (refVal) msg += `*Ref OM:* ${refVal}\n`;
-    if (hasScreenshot('mainScreenshot', 'mainCamera', 'screenshotPreview')) {
-        msg += `*Capture SMS Orange:* Jointe avec ce message.\n`;
-    }
+    msg += `*Ref OM:* ${document.getElementById('ref').value || 'Non renseigné'}\n`;
     msg += `*Sens:* ${sens == "GM" ? "Cameroun → Maroc" : "Maroc → Cameroun"}\n`;
     msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
     msg += `*Frais:* 5% Envoi + 10% Réception\n`;
     msg += `--------------------------------\n`;
     msg += `Merci de valider la transaction Orange Money`;
+    return msg;
+}
 
-    const sendResult = await sendTransactionWhatsApp({
-        text: msg,
-        galleryInputId: 'mainScreenshot',
-        cameraInputId: 'mainCamera',
-        previewId: 'screenshotPreview'
-    });
-
-    if (sendResult.method === 'cancelled') return;
-
-    closeBootstrapModal('transactionModal');
-};
+setupDualWhatsAppButtons({
+    sansButtonId: 'waSans',
+    avecButtonId: 'waAvec',
+    nameInputId: 'nom',
+    refInputId: 'ref',
+    phone: NUMERO_WHATSAPP,
+    downloadPrefix: 'Preuve_OM',
+    getMessage: buildWhatsAppMessage,
+    galleryInputId: 'mainScreenshot',
+    cameraInputId: 'mainCamera',
+    previewId: 'screenshotPreview',
+    filenameId: 'screenshotFilename'
+});
 
 btnAide.onclick = () => {
-    alert("Aide Orange Money:\n\nFrais: 5% à l'envoi + 10% à la réception.\n\n1. Choisissez le sens\n2. Copiez le numéro Orange Money\n3. Entrez le montant\n4. Ajoutez capture + nom\n5. Envoyez sur WhatsApp");
+    alert("Aide Orange Money:\n\n1. Choisissez le sens\n2. Copiez le numéro Orange Money\n3. Entrez le montant\n4. Ajoutez nom + ref + capture\n5. Choisissez « sans image » ou « avec image » sur WhatsApp");
 };
 
 function copyText(text, btn) {

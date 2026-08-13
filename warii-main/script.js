@@ -1,6 +1,5 @@
 let sens = "GM";
 
-// Taux et frais Airtel Money — référence : 100 000 FCFA → 1 450 Dhs reçus
 const FRAIS_ENVOI = 0;
 const FRAIS_RECEPTION = 0.13;
 const REF_FCFA = 100000;
@@ -18,32 +17,8 @@ const resultUnit = document.getElementById('resultUnit');
 const info = document.getElementById('info');
 const flagAccent = document.getElementById('flagAccent');
 const nom = document.getElementById('nom');
-const wa = document.getElementById('wa');
 const btnAide = document.getElementById('btnAide');
 
-const SCREENSHOT_OPTS = {
-    galleryInputId: 'mainScreenshot',
-    cameraInputId: 'mainCamera',
-    previewId: 'screenshotPreview',
-    filenameId: 'screenshotFilename'
-};
-
-setupScreenshotCapture(SCREENSHOT_OPTS);
-
-bindWhatsAppSendButton({
-    buttonId: 'wa',
-    galleryInputId: 'mainScreenshot',
-    cameraInputId: 'mainCamera',
-    previewId: 'screenshotPreview',
-    nameInputId: 'nom',
-    onBeforeModal: () => {
-        document.getElementById('modalQuestionBody').style.display = 'block';
-        document.getElementById('modalDetailsBody').style.display = 'none';
-        document.getElementById('modalRef').value = '';
-    }
-});
-
-// Toggle sens
 if (btnGM) btnGM.addEventListener('click', () => setSens('GM'));
 if (btnMG) btnMG.addEventListener('click', () => setSens('MG'));
 
@@ -93,68 +68,36 @@ if (amount) {
     amount.addEventListener("input", effectuerCalcul);
 }
 
-document.getElementById('modalBtnNon').onclick = async () => {
-    let msg = `*DEMANDE AIRTEL MONEY WARI EXPRESS*\n\n`;
-    msg += `*Statut:* Je souhaite effectuer une transaction Airtel Money.\n`;
-    msg += `*Êtes-vous en ligne ?*\n\n`;
-    msg += `*Nom:* ${nom?.value || 'Non renseigné'}\n`;
-    msg += `*Sens:* ${sens == "GM" ? "Gabon → Maroc" : "Maroc → Gabon"}\n`;
-    msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
-    msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
-    msg += `*Frais:* Envoi gratuit · Réception 13%\n`;
-    msg += `--------------------------------`;
-    if (hasScreenshot('mainScreenshot', 'mainCamera', 'screenshotPreview')) {
-        msg += `\n*Capture d'écran:* Jointe avec ce message.`;
-    }
-
-    const sendResult = await sendTransactionWhatsApp({
-        text: msg,
-        galleryInputId: 'mainScreenshot',
-        cameraInputId: 'mainCamera',
-        previewId: 'screenshotPreview'
-    });
-    if (sendResult.method === 'cancelled') return;
-
-    closeBootstrapModal('transactionModal');
-};
-
-document.getElementById('modalBtnOui').onclick = () => {
-    document.getElementById('modalQuestionBody').style.display = 'none';
-    document.getElementById('modalDetailsBody').style.display = 'block';
-};
-
-document.getElementById('modalBtnSend').onclick = async () => {
-    let refVal = document.getElementById('modalRef').value;
-
+function buildWhatsAppMessage() {
     let msg = `*TRANSACTION AIRTEL MONEY WARI EXPRESS*\n\n`;
-    msg += `*Statut:* Transaction Airtel Money effectuée.\n`;
     msg += `*Nom:* ${nom?.value || 'Non renseigné'}\n`;
-    if (refVal) msg += `*Ref Transaction:* ${refVal}\n`;
-    if (hasScreenshot('mainScreenshot', 'mainCamera', 'screenshotPreview')) {
-        msg += `*Capture d'écran:* Jointe avec ce message.\n`;
-    }
+    msg += `*Ref:* ${document.getElementById('ref').value || 'Non renseigné'}\n`;
     msg += `*Sens:* ${sens == "GM" ? "Gabon → Maroc" : "Maroc → Gabon"}\n`;
     msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
     msg += `*Frais:* Envoi gratuit · Réception 13%\n`;
     msg += `--------------------------------\n`;
     msg += `Merci de valider la transaction Airtel Money`;
+    return msg;
+}
 
-    const sendResult = await sendTransactionWhatsApp({
-        text: msg,
-        galleryInputId: 'mainScreenshot',
-        cameraInputId: 'mainCamera',
-        previewId: 'screenshotPreview'
-    });
-
-    if (sendResult.method === 'cancelled') return;
-
-    closeBootstrapModal('transactionModal');
-};
+setupDualWhatsAppButtons({
+    sansButtonId: 'waSans',
+    avecButtonId: 'waAvec',
+    nameInputId: 'nom',
+    refInputId: 'ref',
+    phone: NUMERO_WHATSAPP,
+    downloadPrefix: 'Preuve_Airtel',
+    getMessage: buildWhatsAppMessage,
+    galleryInputId: 'mainScreenshot',
+    cameraInputId: 'mainCamera',
+    previewId: 'screenshotPreview',
+    filenameId: 'screenshotFilename'
+});
 
 if (btnAide) {
     btnAide.addEventListener('click', () => {
-        alert("Aide Wari Express Airtel Money:\n\nFrais: envoi gratuit, réception 13%.\n\n1. Choisissez le sens\n2. Copiez le numéro\n3. Entrez le montant\n4. Remplissez nom + capture\n5. Validez via WhatsApp");
+        alert("Aide Wari Express Airtel Money:\n\n1. Choisissez le sens\n2. Copiez le numéro\n3. Entrez le montant\n4. Ajoutez nom + ref + capture\n5. Choisissez « sans image » ou « avec image » sur WhatsApp");
     });
 }
 

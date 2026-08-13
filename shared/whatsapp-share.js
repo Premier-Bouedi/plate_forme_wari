@@ -150,15 +150,116 @@ async function copyImageToClipboard(file) {
     return true;
 }
 
-function downloadImageFile(file) {
+function downloadImageFile(file, downloadName) {
     const url = URL.createObjectURL(file);
     const link = document.createElement('a');
     link.href = url;
-    link.download = file.name || 'preuve-transaction.jpg';
+    link.download = downloadName || file.name || 'preuve-transaction.jpg';
     document.body.appendChild(link);
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function sendWhatsAppTextOnly(phone, text) {
+    openWhatsAppTarget(phone, text);
+    return { method: 'text' };
+}
+
+async function sendWhatsAppWithImageDownload({ phone, text, file, downloadName }) {
+    openWhatsAppTarget(phone, `${text}\n\nCapture d'écran jointe 👇`);
+
+    if (!file) {
+        return { method: 'text' };
+    }
+
+    try {
+        const imageFile = await prepareWhatsAppImage(file);
+        downloadImageFile(imageFile, downloadName || 'preuve-transaction.jpg');
+    } catch (err) {
+        downloadImageFile(file, downloadName || 'preuve-transaction.jpg');
+    }
+
+    alert(
+        '1. WhatsApp s\'ouvre avec le message\n' +
+        '2. L\'image a été téléchargée\n' +
+        '3. Joignez-la dans WhatsApp avec 📎'
+    );
+
+    return { method: 'download' };
+}
+
+function validateNameInput(nameInputId) {
+    const nameInput = nameInputId ? document.getElementById(nameInputId) : null;
+    if (nameInput && !nameInput.value.trim()) {
+        alert('Veuillez indiquer votre nom et prénom.');
+        nameInput.focus();
+        return false;
+    }
+    return true;
+}
+
+function setupDualWhatsAppButtons({
+    sansButtonId,
+    avecButtonId,
+    getMessage,
+    phone,
+    nameInputId,
+    refInputId,
+    downloadPrefix,
+    galleryInputId,
+    cameraInputId,
+    previewId,
+    filenameId
+}) {
+    const sansBtn = document.getElementById(sansButtonId);
+    const avecBtn = document.getElementById(avecButtonId);
+    const targetPhone = phone || NUMERO_WHATSAPP_TRANSFERT;
+
+    function refreshAvecButton() {
+        if (avecBtn) {
+            avecBtn.disabled = !hasScreenshot(galleryInputId, cameraInputId, previewId);
+        }
+    }
+
+    setupScreenshotCapture({
+        galleryInputId,
+        cameraInputId,
+        previewId,
+        filenameId,
+        onFileChange: refreshAvecButton
+    });
+
+    refreshAvecButton();
+
+    if (sansBtn) {
+        sansBtn.addEventListener('click', () => {
+            if (!validateNameInput(nameInputId)) return;
+            sendWhatsAppTextOnly(targetPhone, getMessage());
+        });
+    }
+
+    if (avecBtn) {
+        avecBtn.addEventListener('click', async () => {
+            if (!validateNameInput(nameInputId)) return;
+
+            const file = await getScreenshotFileAsync(galleryInputId, cameraInputId, previewId);
+            if (!file) {
+                alert('Veuillez ajouter une capture d\'écran ou une photo.');
+                return;
+            }
+
+            const refVal = refInputId ? document.getElementById(refInputId)?.value?.trim() : '';
+            const safeRef = (refVal || 'sans-ref').replace(/[^\w\-]+/g, '_');
+
+            await sendWhatsAppWithImageDownload({
+                phone: targetPhone,
+                text: getMessage(),
+                file,
+                downloadName: `${downloadPrefix || 'Preuve'}_${safeRef}.jpg`
+            });
+        });
+    }
 }
 
 async function tryNativeShare(shareData) {
@@ -279,7 +380,7 @@ function closeBootstrapModal(modalId) {
 
 const _screenshotFiles = {};
 
-function setupScreenshotCapture({ galleryInputId, cameraInputId, previewId, filenameId }) {
+function setupScreenshotCapture({ galleryInputId, cameraInputId, previewId, filenameId, onFileChange }) {
     const galleryInput = galleryInputId ? document.getElementById(galleryInputId) : null;
     const cameraInput = cameraInputId ? document.getElementById(cameraInputId) : null;
     const preview = document.getElementById(previewId);
@@ -304,6 +405,10 @@ function setupScreenshotCapture({ galleryInputId, cameraInputId, previewId, file
         if (filenameEl) {
             filenameEl.textContent = file.name || 'Photo sélectionnée';
             filenameEl.style.display = 'block';
+        }
+
+        if (typeof onFileChange === 'function') {
+            onFileChange(true);
         }
     }
 
@@ -442,31 +547,4 @@ function pickScreenshotSource(type) {
 
 function closeScreenshotMenu() {
     document.getElementById('screenshotChoiceMenu')?.classList.remove('open');
-}
-
-function bindWhatsAppSendButton({
-    buttonId,
-    galleryInputId,
-    cameraInputId,
-    previewId,
-    nameInputId,
-    onBeforeModal
-}) {
-    const button = document.getElementById(buttonId);
-    if (!button) return;
-
-    button.addEventListener('click', (event) => {
-        const nameInput = nameInputId ? document.getElementById(nameInputId) : null;
-        if (nameInput && !nameInput.value.trim()) {
-            event.preventDefault();
-            event.stopPropagation();
-            alert('Veuillez indiquer votre nom et prénom avant d\'envoyer.');
-            nameInput.focus();
-            return;
-        }
-
-        if (typeof onBeforeModal === 'function') {
-            onBeforeModal();
-        }
-    });
 }

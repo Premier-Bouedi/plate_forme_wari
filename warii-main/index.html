@@ -112,6 +112,10 @@
                 <input type="text" id="nom" class="form-control mb-3" placeholder="Votre nom"
                     style="border: 1px solid rgba(0,0,0,0.1);">
 
+                <label for="ref" class="form-label">N° Transaction (Facultatif)</label>
+                <input type="text" id="ref" class="form-control mb-3" placeholder="Ex: TRX123"
+                    style="border: 1px solid rgba(0,0,0,0.1);">
+
                 <div class="screenshot-block screenshot-block-main">
                     <button type="button" class="btn-screenshot-unified"
                         onclick="triggerScreenshotChoice('mainScreenshot', 'mainCamera')">
@@ -128,8 +132,11 @@
                     <p class="screenshot-filename" id="screenshotFilename"></p>
                 </div>
 
-                <button id="wa" class="btn btn-whatsapp-send w-100" data-bs-toggle="modal"
-                    data-bs-target="#transactionModal">📲 Envoyer / Valider</button>
+                <div class="whatsapp-dual-actions">
+                    <button type="button" id="waSans" class="btn btn-whatsapp-outline w-100">📲 Contacter sans l'image</button>
+                    <button type="button" id="waAvec" class="btn btn-whatsapp-send w-100" disabled>📸 Contacter avec l'image</button>
+                </div>
+                <p class="whatsapp-dual-hint">Avec image : WhatsApp s'ouvre et la capture se télécharge. Joignez-la avec 📎.</p>
             </div>
         </div>
 
@@ -207,29 +214,6 @@
 
     <!-- BOUTON FLOTTANT -->
     <button class="btn-float-aide" id="btnAide" title="Aide">?</button>
-
-    <!-- Modal Transaction -->
-    <div class="modal fade" id="transactionModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fs-5 text-dark fw-bold">Avez-vous déjà effectué la transaction ?</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center" id="modalQuestionBody">
-                    <p class="text-muted mb-4 small">Veuillez choisir une option pour continuer.</p>
-                    <button id="modalBtnNon" class="btn btn-outline-danger me-2 px-4 fw-bold">Non</button>
-                    <button id="modalBtnOui" class="btn btn-outline-success px-4 fw-bold">Oui</button>
-                </div>
-                <div class="modal-body" id="modalDetailsBody" style="display: none;">
-                    <label for="modalRef" class="form-label text-dark">N° Transaction (Facultatif)</label>
-                    <input type="text" id="modalRef" class="form-control mb-3" placeholder="Ex: TRX123">
-
-                    <button id="modalBtnSend" class="btn btn-whatsapp-send w-100">📲 Envoyer / Valider</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="screenshot-choice-menu" id="screenshotChoiceMenu"
         onclick="if(event.target===this) closeScreenshotMenu()">

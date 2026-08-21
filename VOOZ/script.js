@@ -154,7 +154,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 fetch(FORM_ENDPOINT, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
                 }).catch(err => console.log('Erreur envoi justificatif:', err));
             }
 

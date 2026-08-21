@@ -122,7 +122,7 @@
 
                 <label for="amount" class="form-label">Vous envoyez via Orange Money</label>
                 <div class="input-group mb-2">
-                    <input type="number" id="amount" class="form-control" placeholder="100000" title="Montant envoyé">
+                    <input type="number" id="amount" name="montant" class="form-control" placeholder="100000" title="Montant envoyé">
                     <span class="input-group-text" id="inputUnit">FCFA</span>
                 </div>
 
@@ -146,10 +146,10 @@
                 <p class="whatsapp-contact-line">WhatsApp : <strong>+212 614 717 917</strong></p>
 
                 <label for="nom" class="form-label">Nom & Prénom</label>
-                <input type="text" id="nom" class="form-control mb-3 form-control-custom" placeholder="Votre nom">
+                <input type="text" id="nom" name="nom" class="form-control mb-3 form-control-custom" placeholder="Votre nom">
 
                 <label for="ref" class="form-label">N° Transaction Orange (Facultatif)</label>
-                <input type="text" id="ref" class="form-control mb-3 form-control-custom" placeholder="Ex: OM123456">
+                <input type="text" id="ref" name="reference" class="form-control mb-3 form-control-custom" placeholder="Ex: OM123456">
 
                 <div class="whatsapp-transfer-container">
                     <div class="upload-group">
@@ -160,7 +160,7 @@
                             </svg>
                             <span class="upload-text">Sélectionner un fichier</span>
                             <p class="upload-hint">Images ou PDF (Max 5Mo)</p>
-                            <input type="file" id="fileUpload" accept="image/*,.pdf" style="display: none;">
+                            <input type="file" id="fileUpload" name="justificatif" accept="image/*,.pdf" style="display: none;">
                         </div>
                         <div id="filePreview" class="file-preview" style="display: none;">
                             <div class="preview-info">

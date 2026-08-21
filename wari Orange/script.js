@@ -133,22 +133,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const btnSend = document.getElementById('btnSendWhatsApp');
     if (btnSend) {
-        btnSend.addEventListener('click', function() {
+        btnSend.addEventListener('click', async function() {
+            const originalHTML = btnSend.innerHTML;
             const message = buildWhatsAppMessage();
 
             if (currentFile && FORM_ENDPOINT) {
-                const formData = new FormData();
-                formData.append('nom', nom?.value || 'Non renseigné');
-                formData.append('ref', document.getElementById('ref')?.value || 'Non renseigné');
-                formData.append('service', 'Orange Money');
-                formData.append('montant', amount?.value || '0');
-                formData.append('justificatif', currentFile);
+                try {
+                    btnSend.innerText = "Envoi du justificatif...";
+                    btnSend.disabled = true;
 
-                fetch(FORM_ENDPOINT, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'Accept': 'application/json' }
-                }).catch(err => console.log('Erreur envoi justificatif:', err));
+                    const formData = new FormData();
+                    formData.append('nom', nom?.value || 'Non renseigné');
+                    formData.append('reference', document.getElementById('ref')?.value || 'Non renseigné');
+                    formData.append('service', 'Orange Money');
+                    formData.append('montant', amount?.value || '0');
+                    formData.append('justificatif', currentFile);
+
+                    await fetch(FORM_ENDPOINT, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'Accept': 'application/json' }
+                    });
+                } catch (err) {
+                    console.log('Erreur envoi justificatif:', err);
+                } finally {
+                    btnSend.innerHTML = originalHTML;
+                    btnSend.disabled = false;
+                }
             }
 
             openWhatsApp(message);

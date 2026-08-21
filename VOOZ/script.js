@@ -140,23 +140,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
     if (btnSendWhatsApp) {
-        btnSendWhatsApp.addEventListener('click', function() {
+        btnSendWhatsApp.addEventListener('click', async function() {
+            const originalHTML = btnSendWhatsApp.innerHTML;
             const message = buildWhatsAppMessage();
 
-            // Si un fichier est joint et qu'un endpoint Formware / Formspree est configuré, on l'envoie en arrière-plan
             if (currentFile && FORM_ENDPOINT) {
-                const formData = new FormData();
-                formData.append('nom', nom?.value || 'Non renseigné');
-                formData.append('ref', document.getElementById('ref')?.value || 'Non renseigné');
-                formData.append('service', 'Wave Money');
-                formData.append('montant', amount?.value || '0');
-                formData.append('justificatif', currentFile);
+                try {
+                    btnSendWhatsApp.innerText = "Envoi du justificatif...";
+                    btnSendWhatsApp.disabled = true;
 
-                fetch(FORM_ENDPOINT, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'Accept': 'application/json' }
-                }).catch(err => console.log('Erreur envoi justificatif:', err));
+                    const formData = new FormData();
+                    formData.append('nom', nom?.value || 'Non renseigné');
+                    formData.append('reference', document.getElementById('ref')?.value || 'Non renseigné');
+                    formData.append('service', 'Wave Money');
+                    formData.append('montant', amount?.value || '0');
+                    formData.append('justificatif', currentFile);
+
+                    await fetch(FORM_ENDPOINT, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'Accept': 'application/json' }
+                    });
+                } catch (err) {
+                    console.log('Erreur envoi justificatif:', err);
+                } finally {
+                    btnSendWhatsApp.innerHTML = originalHTML;
+                    btnSendWhatsApp.disabled = false;
+                }
             }
 
             openWhatsApp(message);

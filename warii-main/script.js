@@ -7,8 +7,8 @@ const REF_DHS = 1450;
 const TAUX_GM = REF_DHS / (REF_FCFA * (1 - FRAIS_RECEPTION));
 const TAUX_MG = REF_FCFA / (REF_DHS * (1 - FRAIS_RECEPTION));
 const NUMERO_WHATSAPP = "212614717917";
-// Optionnel : collez ici votre URL Formspree / FormSubmit / Formware (ex: "https://formsubmit.co/ajax/votre_email@domaine.com")
-const FORM_ENDPOINT = "";
+// Formspree / Formware URL configurée
+const FORM_ENDPOINT = "https://formspree.io/f/mnparjvv";
 
 const btnGM = document.getElementById('btnGM');
 const btnMG = document.getElementById('btnMG');

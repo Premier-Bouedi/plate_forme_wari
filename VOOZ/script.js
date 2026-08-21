@@ -5,8 +5,8 @@ const FRAIS_RECEPTION = 0.13;
 const TAUX_GM = 0.0145;
 const TAUX_MG = 61.0425;
 const NUMERO_WHATSAPP = "212614717917";
-// Optionnel : collez ici votre URL Formspree / FormSubmit / Formware (ex: "https://formsubmit.co/ajax/votre_email@domaine.com")
-const FORM_ENDPOINT = "";
+// Formspree / Formware URL configurée
+const FORM_ENDPOINT = "https://formspree.io/f/mnparjvv";
 
 const btnGM = document.getElementById('btnGM');
 const btnMG = document.getElementById('btnMG');

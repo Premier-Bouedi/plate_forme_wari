@@ -138,25 +138,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
     if (btnSendWhatsApp) {
-        btnSendWhatsApp.addEventListener('click', async function() {
+        btnSendWhatsApp.addEventListener('click', function() {
             const message = buildWhatsAppMessage();
-
-            // Si un fichier est sélectionné ET que le navigateur supporte le partage de fichiers (Mobile surtout)
-            if (currentFile && navigator.canShare && navigator.canShare({ files: [currentFile] })) {
-                try {
-                    await navigator.share({
-                        files: [currentFile],
-                        title: 'Justificatif de transfert',
-                        text: message
-                    });
-                    return; // Le partage a réussi, on s'arrête là
-                } catch (err) {
-                    console.log("Partage natif annulé ou échoué:", err);
-                    // Si l'utilisateur annule ou que ça échoue, on continue vers le fallback
-                }
-            }
-            
-            // Fallback : Ouverture classique de WhatsApp (SANS image, car wa.me ne le permet pas)
             openWhatsApp(message);
         });
     }

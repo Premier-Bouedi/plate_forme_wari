@@ -143,14 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const btnSend = document.getElementById('btnSendWhatsApp');
     if (btnSend) {
-        btnSend.addEventListener('click', async function() {
+        btnSend.addEventListener('click', function() {
             const message = buildWhatsAppMessage();
-            if (currentFile && navigator.canShare && navigator.canShare({ files: [currentFile] })) {
-                try {
-                    await navigator.share({ files: [currentFile], title: 'Justificatif Airtel', text: message });
-                    return;
-                } catch (err) { console.log('Partage annulé:', err); }
-            }
             openWhatsApp(message);
         });
     }

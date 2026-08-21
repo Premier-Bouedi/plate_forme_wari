@@ -5,16 +5,25 @@ const FRAIS_RECEPTION = 0.10;
 const TAUX_MG = 61.0425;
 const NUMERO_WHATSAPP = "212614717917";
 
-btnGM.onclick = () => setSens("GM");
-btnMG.onclick = () => setSens("MG");
+const btnGM = document.getElementById('btnGM');
+const btnMG = document.getElementById('btnMG');
+const amount = document.getElementById('amount');
+const inputUnit = document.getElementById('inputUnit');
+const result = document.getElementById('result');
+const resultUnit = document.getElementById('resultUnit');
+const info = document.getElementById('info');
+const flagAccent = document.getElementById('flagAccent');
+
+if (btnGM) btnGM.onclick = () => setSens("GM");
+if (btnMG) btnMG.onclick = () => setSens("MG");
 
 function setSens(dir) {
     sens = dir;
-    btnGM.classList.toggle('active', dir == "GM");
-    btnMG.classList.toggle('active', dir == "MG");
-    inputUnit.innerText = dir == "GM" ? "FCFA" : "Dhs";
-    resultUnit.innerText = dir == "GM" ? "Dhs" : "FCFA";
-    flagAccent.className = "flag-accent " + (dir == "GM" ? "cm" : "mg");
+    if (btnGM) btnGM.classList.toggle('active', dir == "GM");
+    if (btnMG) btnMG.classList.toggle('active', dir == "MG");
+    if (inputUnit) inputUnit.innerText = dir == "GM" ? "FCFA" : "Dhs";
+    if (resultUnit) resultUnit.innerText = dir == "GM" ? "Dhs" : "FCFA";
+    if (flagAccent) flagAccent.className = "flag-accent " + (dir == "GM" ? "cm" : "mg");
     effectuerCalcul();
 }
 
@@ -45,7 +54,7 @@ function effectuerCalcul() {
     info.innerText = details;
 }
 
-amount.addEventListener("input", effectuerCalcul);
+if (amount) amount.addEventListener("input", effectuerCalcul);
 
 function buildWhatsAppMessage() {
     let msg = `*TRANSFERT ORANGE MONEY WARI EXPRESS*\n\n`;
@@ -60,23 +69,94 @@ function buildWhatsAppMessage() {
     return msg;
 }
 
-setupDualWhatsAppButtons({
-    sansButtonId: 'waSans',
-    avecButtonId: 'waAvec',
-    nameInputId: 'nom',
-    refInputId: 'ref',
-    phone: NUMERO_WHATSAPP,
-    downloadPrefix: 'Preuve_OM',
-    getMessage: buildWhatsAppMessage,
-    galleryInputId: 'mainScreenshot',
-    cameraInputId: 'mainCamera',
-    previewId: 'screenshotPreview',
-    filenameId: 'screenshotFilename'
-});
+document.addEventListener('DOMContentLoaded', function() {
+    const fileUpload = document.getElementById('fileUpload');
+    const dropZone = document.getElementById('dropZone');
+    const filePreview = document.getElementById('filePreview');
+    const previewImg = document.getElementById('previewImg');
+    const previewPdf = document.getElementById('previewPdf');
+    const fileNameEl = document.getElementById('fileName');
+    const fileSizeEl = document.getElementById('fileSize');
+    const uploadError = document.getElementById('uploadError');
+    const removeFileBtn = document.getElementById('removeFileBtn');
+    const MAX_SIZE = 5 * 1024 * 1024;
+    let currentFile = null;
 
-btnAide.onclick = () => {
-    alert("Aide Orange Money:\n\n1. Choisissez le sens\n2. Copiez le numéro Orange Money\n3. Entrez le montant\n4. Ajoutez nom + ref + capture\n5. Choisissez « sans image » ou « avec image » sur WhatsApp");
-};
+    if (fileUpload) {
+        fileUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            uploadError.textContent = '';
+            if (file) {
+                if (file.size > MAX_SIZE) {
+                    uploadError.textContent = 'Fichier trop volumineux (max 5Mo).';
+                    fileUpload.value = '';
+                    currentFile = null;
+                    return;
+                }
+                currentFile = file;
+                fileNameEl.textContent = file.name;
+                fileSizeEl.textContent = (file.size / 1024 / 1024).toFixed(2) + ' Mo';
+                dropZone.style.display = 'none';
+                filePreview.style.display = 'flex';
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        previewImg.style.display = 'block';
+                        previewPdf.style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewImg.style.display = 'none';
+                    previewPdf.style.display = 'flex';
+                }
+            }
+        });
+    }
+
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function() {
+            fileUpload.value = '';
+            currentFile = null;
+            dropZone.style.display = 'flex';
+            filePreview.style.display = 'none';
+            uploadError.textContent = '';
+        });
+    }
+
+    function openWhatsApp(message) {
+        const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message)}`;
+        window.location.href = url;
+    }
+
+    const btnSend = document.getElementById('btnSendWhatsApp');
+    if (btnSend) {
+        btnSend.addEventListener('click', async function() {
+            const message = buildWhatsAppMessage();
+            if (currentFile && navigator.canShare && navigator.canShare({ files: [currentFile] })) {
+                try {
+                    await navigator.share({ files: [currentFile], title: 'Justificatif Orange Money', text: message });
+                    return;
+                } catch (err) { console.log('Partage annulé:', err); }
+            }
+            openWhatsApp(message);
+        });
+    }
+
+    const btnContact = document.getElementById('btnContactSupport');
+    if (btnContact) {
+        btnContact.addEventListener('click', function() {
+            openWhatsApp("Bonjour, j'ai besoin d'aide concernant mon transfert Orange Money. Merci.");
+        });
+    }
+    // Aide
+    const btnAide = document.getElementById('btnAide');
+    if (btnAide) {
+        btnAide.onclick = () => {
+            alert("Aide Orange Money:\n\n1. Choisissez le sens (Cameroun ↔ Maroc)\n2. Copiez le numéro Orange Money\n3. Entrez le montant à envoyer\n4. Remplissez votre nom et référence\n5. Ajoutez un justificatif (optionnel)\n6. Cliquez sur 'Envoyer via WhatsApp'");
+        };
+    }
+});
 
 function copyText(text, btn) {
     navigator.clipboard.writeText(text).then(() => {

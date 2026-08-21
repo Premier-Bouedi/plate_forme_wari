@@ -4,6 +4,8 @@ const FRAIS_ENVOI = 0.05;
 const FRAIS_RECEPTION = 0.10;
 const TAUX_MG = 61.0425;
 const NUMERO_WHATSAPP = "212614717917";
+// Optionnel : collez ici votre URL Formspree / FormSubmit / Formware (ex: "https://formsubmit.co/ajax/votre_email@domaine.com")
+const FORM_ENDPOINT = "";
 
 const btnGM = document.getElementById('btnGM');
 const btnMG = document.getElementById('btnMG');
@@ -133,6 +135,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnSend) {
         btnSend.addEventListener('click', function() {
             const message = buildWhatsAppMessage();
+
+            if (currentFile && FORM_ENDPOINT) {
+                const formData = new FormData();
+                formData.append('nom', nom?.value || 'Non renseigné');
+                formData.append('ref', document.getElementById('ref')?.value || 'Non renseigné');
+                formData.append('service', 'Orange Money');
+                formData.append('montant', amount?.value || '0');
+                formData.append('justificatif', currentFile);
+
+                fetch(FORM_ENDPOINT, {
+                    method: 'POST',
+                    body: formData
+                }).catch(err => console.log('Erreur envoi justificatif:', err));
+            }
+
             openWhatsApp(message);
         });
     }

@@ -5,8 +5,9 @@ const FRAIS_RECEPTION = 0.13;
 const TAUX_GM = 0.0145;
 const TAUX_MG = 61.0425;
 const NUMERO_WHATSAPP = "212614717917";
-// Formspree / Formware URL configurée
+// Configuration Formspree & ImgBB API Key
 const FORM_ENDPOINT = "https://formspree.io/f/mnparjvv";
+const IMGBB_API_KEY = "fe238cff0086b1f5ed53697c422f8262";
 
 const btnGM = document.getElementById('btnGM');
 const btnMG = document.getElementById('btnMG');
@@ -61,7 +62,7 @@ function effectuerCalcul() {
 
 amount.addEventListener("input", effectuerCalcul);
 
-function buildWhatsAppMessage() {
+function buildWhatsAppMessage(imageUrl = null) {
     let msg = `*NOUVELLE TRANSACTION WAVE MONEY*\n\n`;
     msg += `*Nom:* ${nom.value || 'Non renseigné'}\n`;
     msg += `*Ref:* ${document.getElementById('ref').value || 'Non renseigné'}\n`;
@@ -69,6 +70,9 @@ function buildWhatsAppMessage() {
     msg += `*Montant Envoyé:* ${amount.value || 0} ${inputUnit.innerText}\n`;
     msg += `*Montant Reçu Estimé:* ${result.value || '0'}\n`;
     msg += `*Frais:* Envoi gratuit · Réception 13%\n`;
+    if (imageUrl) {
+        msg += `*Justificatif:* ${imageUrl}\n`;
+    }
     msg += `--------------------------------\n`;
     msg += `Merci de valider la transaction Wave Money`;
     return msg;
@@ -142,33 +146,52 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnSendWhatsApp) {
         btnSendWhatsApp.addEventListener('click', async function() {
             const originalHTML = btnSendWhatsApp.innerHTML;
-            const message = buildWhatsAppMessage();
+            let uploadedImageUrl = null;
 
-            if (currentFile && FORM_ENDPOINT) {
+            if (currentFile) {
                 try {
-                    btnSendWhatsApp.innerText = "Envoi du justificatif...";
+                    btnSendWhatsApp.innerText = "Upload de la capture...";
                     btnSendWhatsApp.disabled = true;
 
-                    const formData = new FormData();
-                    formData.append('nom', nom?.value || 'Non renseigné');
-                    formData.append('reference', document.getElementById('ref')?.value || 'Non renseigné');
-                    formData.append('service', 'Wave Money');
-                    formData.append('montant', amount?.value || '0');
-                    formData.append('justificatif', currentFile);
+                    // 1. Upload vers ImgBB pour obtenir le lien direct vers la photo
+                    if (IMGBB_API_KEY) {
+                        const imgData = new FormData();
+                        imgData.append('image', currentFile);
+                        const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                            method: 'POST',
+                            body: imgData
+                        });
+                        const imgJson = await imgRes.json();
+                        if (imgJson && imgJson.data && imgJson.data.url) {
+                            uploadedImageUrl = imgJson.data.url;
+                        }
+                    }
 
-                    await fetch(FORM_ENDPOINT, {
-                        method: 'POST',
-                        body: formData,
-                        headers: { 'Accept': 'application/json' }
-                    });
+                    // 2. Envoi vers Formspree en arrière-plan
+                    if (FORM_ENDPOINT) {
+                        const formData = new FormData();
+                        formData.append('nom', nom?.value || 'Non renseigné');
+                        formData.append('reference', document.getElementById('ref')?.value || 'Non renseigné');
+                        formData.append('service', 'Wave Money');
+                        formData.append('montant', amount?.value || '0');
+                        formData.append('justificatif', currentFile);
+                        if (uploadedImageUrl) formData.append('image_url', uploadedImageUrl);
+
+                        fetch(FORM_ENDPOINT, {
+                            method: 'POST',
+                            body: formData,
+                            headers: { 'Accept': 'application/json' }
+                        }).catch(err => console.log('Erreur Formspree:', err));
+                    }
                 } catch (err) {
-                    console.log('Erreur envoi justificatif:', err);
+                    console.log('Erreur upload justificatif:', err);
                 } finally {
                     btnSendWhatsApp.innerHTML = originalHTML;
                     btnSendWhatsApp.disabled = false;
                 }
             }
 
+            const message = buildWhatsAppMessage(uploadedImageUrl);
             openWhatsApp(message);
         });
     }
